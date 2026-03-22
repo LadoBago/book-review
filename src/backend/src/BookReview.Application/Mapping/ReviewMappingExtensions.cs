@@ -23,7 +23,11 @@ public static class ReviewMappingExtensions
             {
                 Id = q.Id,
                 Text = q.Text
-            }).ToList()
+            }).ToList(),
+            HasDraft = review.HasDraft,
+            DraftTitle = review.DraftTitle,
+            DraftBody = review.DraftBody,
+            DraftQuotes = review.DraftQuotes
         };
     }
 
@@ -37,7 +41,8 @@ public static class ReviewMappingExtensions
             CoverImageUrl = review.CoverImageUrl,
             Status = review.Status.ToString(),
             AuthorName = review.AuthorName,
-            CreatedAt = review.CreatedAt
+            CreatedAt = review.CreatedAt,
+            HasDraft = review.HasDraft
         };
     }
 }

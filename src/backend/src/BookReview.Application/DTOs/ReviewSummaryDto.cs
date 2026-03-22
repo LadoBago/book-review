@@ -9,4 +9,5 @@ public class ReviewSummaryDto
     public string Status { get; init; } = string.Empty;
     public string AuthorName { get; init; } = string.Empty;
     public DateTimeOffset CreatedAt { get; init; }
+    public bool HasDraft { get; init; }
 }

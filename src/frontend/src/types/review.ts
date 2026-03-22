@@ -15,6 +15,10 @@ export interface ReviewDto {
   createdAt: string;
   updatedAt: string;
   quotes: QuoteDto[];
+  hasDraft: boolean;
+  draftTitle: string | null;
+  draftBody: string | null;
+  draftQuotes: string[] | null;
 }
 
 export interface ReviewSummaryDto {
@@ -25,6 +29,7 @@ export interface ReviewSummaryDto {
   status: string;
   authorName: string;
   createdAt: string;
+  hasDraft: boolean;
 }
 
 export interface PagedResult<T> {

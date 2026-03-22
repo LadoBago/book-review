@@ -101,6 +101,33 @@ public class ReviewsController : ControllerBase
     }
 
     [Authorize]
+    [HttpPost("{id:guid}/publish")]
+    public async Task<ActionResult<ReviewDto>> Publish(Guid id, CancellationToken cancellationToken = default)
+    {
+        var authorId = User.GetUserId();
+        var review = await _reviewService.PublishAsync(id, authorId, cancellationToken);
+        return Ok(review);
+    }
+
+    [Authorize]
+    [HttpPost("{id:guid}/unpublish")]
+    public async Task<ActionResult<ReviewDto>> Unpublish(Guid id, CancellationToken cancellationToken = default)
+    {
+        var authorId = User.GetUserId();
+        var review = await _reviewService.UnpublishAsync(id, authorId, cancellationToken);
+        return Ok(review);
+    }
+
+    [Authorize]
+    [HttpDelete("{id:guid}/draft")]
+    public async Task<ActionResult<ReviewDto>> DiscardDraft(Guid id, CancellationToken cancellationToken = default)
+    {
+        var authorId = User.GetUserId();
+        var review = await _reviewService.DiscardDraftAsync(id, authorId, cancellationToken);
+        return Ok(review);
+    }
+
+    [Authorize]
     [HttpPost("{id:guid}/cover")]
     public async Task<ActionResult<ReviewDto>> UploadCover(
         Guid id,

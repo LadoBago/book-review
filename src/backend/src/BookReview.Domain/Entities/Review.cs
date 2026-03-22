@@ -19,6 +19,11 @@ public class Review
     public DateTimeOffset UpdatedAt { get; private set; }
     public IReadOnlyList<Quote> Quotes => _quotes.AsReadOnly();
 
+    public string? DraftTitle { get; private set; }
+    public string? DraftBody { get; private set; }
+    public List<string>? DraftQuotes { get; private set; }
+    public bool HasDraft => DraftTitle != null;
+
     private Review() { }
 
     public Review(string title, string body, string authorId, string authorName, IEnumerable<string>? quotes = null)
@@ -44,13 +49,17 @@ public class Review
 
         if (quotes != null)
         {
+            var order = 0;
             foreach (var quote in quotes)
-                _quotes.Add(new Quote(quote, Id));
+                _quotes.Add(new Quote(quote, Id, order++));
         }
     }
 
     public void UpdateContent(string title, string body, IEnumerable<string>? quotes = null)
     {
+        if (Status == ReviewStatus.Published)
+            throw new DomainException("Use SaveDraftRevision to edit a published review.");
+
         if (string.IsNullOrWhiteSpace(title))
             throw new DomainException("Review title cannot be empty.");
 
@@ -69,9 +78,65 @@ public class Review
         if (quotes != null)
         {
             _quotes.Clear();
+            var order = 0;
             foreach (var quote in quotes)
-                _quotes.Add(new Quote(quote, Id));
+                _quotes.Add(new Quote(quote, Id, order++));
         }
+    }
+
+    public void SaveDraftRevision(string title, string body, List<string>? quotes = null)
+    {
+        if (Status != ReviewStatus.Published)
+            throw new DomainException("Only published reviews can have draft revisions.");
+
+        if (string.IsNullOrWhiteSpace(title))
+            throw new DomainException("Review title cannot be empty.");
+
+        if (string.IsNullOrWhiteSpace(body))
+            throw new DomainException("Review body cannot be empty.");
+
+        DraftTitle = title.Trim();
+        DraftBody = body;
+        DraftQuotes = quotes?.Where(q => !string.IsNullOrWhiteSpace(q)).ToList();
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void PublishDraftRevision()
+    {
+        if (!HasDraft)
+            throw new DomainException("No draft revision to publish.");
+
+        if (DraftTitle!.Trim() != Title)
+        {
+            Title = DraftTitle.Trim();
+            Slug = Slug.FromTitle(Title);
+        }
+
+        Body = DraftBody!;
+
+        _quotes.Clear();
+        if (DraftQuotes != null)
+        {
+            var order = 0;
+            foreach (var quote in DraftQuotes)
+                _quotes.Add(new Quote(quote, Id, order++));
+        }
+
+        DraftTitle = null;
+        DraftBody = null;
+        DraftQuotes = null;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void DiscardDraft()
+    {
+        if (!HasDraft)
+            throw new DomainException("No draft revision to discard.");
+
+        DraftTitle = null;
+        DraftBody = null;
+        DraftQuotes = null;
+        UpdatedAt = DateTimeOffset.UtcNow;
     }
 
     public void SetCoverImageUrl(string url)

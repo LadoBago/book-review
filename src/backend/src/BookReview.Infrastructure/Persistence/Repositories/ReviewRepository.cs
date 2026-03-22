@@ -17,7 +17,7 @@ public class ReviewRepository : IReviewRepository
     public async Task<Review?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _context.Reviews
-            .Include(r => r.Quotes)
+            .Include(r => r.Quotes.OrderBy(q => q.SortOrder))
             .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
     }
 
@@ -25,7 +25,7 @@ public class ReviewRepository : IReviewRepository
     {
         var slugValue = Slug.FromValue(slug);
         return await _context.Reviews
-            .Include(r => r.Quotes)
+            .Include(r => r.Quotes.OrderBy(q => q.SortOrder))
             .FirstOrDefaultAsync(r => r.Slug == slugValue, cancellationToken);
     }
 
@@ -38,7 +38,7 @@ public class ReviewRepository : IReviewRepository
         CancellationToken cancellationToken = default)
     {
         var query = _context.Reviews
-            .Include(r => r.Quotes)
+            .Include(r => r.Quotes.OrderBy(q => q.SortOrder))
             .AsQueryable();
 
         if (status.HasValue)

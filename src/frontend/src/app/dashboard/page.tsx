@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { getMyReviews } from "@/lib/api";
 import Pagination from "@/components/Pagination";
+import UnpublishButton from "@/components/UnpublishButton";
+import PublishButton from "@/components/PublishButton";
 
 interface DashboardProps {
   searchParams: Promise<{ page?: string }>;
@@ -72,6 +74,11 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
                       >
                         {review.status}
                       </span>
+                      {review.hasDraft && (
+                        <span className="ml-1 inline-block rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700">
+                          Draft Pending
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-gray-500">
                       {new Date(review.createdAt).toLocaleDateString()}
@@ -84,7 +91,19 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
                         >
                           Edit
                         </Link>
-                        <DeleteButton reviewId={review.id} />
+                        {review.status === "Published" ? (
+                          <>
+                            <UnpublishButton reviewId={review.id} variant="link" />
+                            {review.hasDraft && (
+                              <PublishButton reviewId={review.id} hasDraft variant="link" />
+                            )}
+                          </>
+                        ) : (
+                          <PublishButton reviewId={review.id} variant="link" />
+                        )}
+                        {review.status !== "Published" && (
+                          <DeleteButton reviewId={review.id} />
+                        )}
                       </div>
                     </td>
                   </tr>

@@ -34,6 +34,7 @@ try
             options.Authority = builder.Configuration["Keycloak:Authority"];
             options.Audience = builder.Configuration["Keycloak:Audience"];
             options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
+            options.MapInboundClaims = false;
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = true,

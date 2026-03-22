@@ -123,6 +123,30 @@ export async function deleteReview(id: string): Promise<void> {
   }
 }
 
+export async function publishReview(id: string): Promise<ReviewDto> {
+  const headers = await getAuthHeaders();
+  return fetchApi(`/api/reviews/${id}/publish`, {
+    method: "POST",
+    headers,
+  });
+}
+
+export async function unpublishReview(id: string): Promise<ReviewDto> {
+  const headers = await getAuthHeaders();
+  return fetchApi(`/api/reviews/${id}/unpublish`, {
+    method: "POST",
+    headers,
+  });
+}
+
+export async function discardDraft(id: string): Promise<ReviewDto> {
+  const headers = await getAuthHeaders();
+  return fetchApi(`/api/reviews/${id}/draft`, {
+    method: "DELETE",
+    headers,
+  });
+}
+
 export async function uploadCoverImage(
   id: string,
   file: File

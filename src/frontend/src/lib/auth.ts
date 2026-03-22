@@ -47,6 +47,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token;
         token.expiresAt = account.expires_at;
+        // Extract sub from access token to match backend's authorId
+        if (account.access_token) {
+          const payload = JSON.parse(
+            Buffer.from(account.access_token.split(".")[1], "base64").toString()
+          );
+          token.sub = payload.sub;
+        }
         return token;
       }
 
@@ -91,6 +98,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async session({ session, token }) {
       session.accessToken = token.accessToken;
       session.error = token.error;
+      if (token.sub && session.user) {
+        session.user.id = token.sub;
+      }
       return session;
     },
   },

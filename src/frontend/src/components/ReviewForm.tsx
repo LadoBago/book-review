@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createReview, updateReview, uploadCoverImage } from "@/lib/api";
+import { createReview, updateReview, uploadCoverImage, discardDraft } from "@/lib/api";
 import { ReviewDto } from "@/types/review";
 import MarkdownEditor from "./MarkdownEditor";
 import MarkdownPreview from "./MarkdownPreview";
@@ -16,18 +16,26 @@ interface ReviewFormProps {
 export default function ReviewForm({ review }: ReviewFormProps) {
   const router = useRouter();
   const isEditing = !!review;
+  const isPublished = review?.status === "Published";
+  const hasDraft = review?.hasDraft ?? false;
 
-  const [title, setTitle] = useState(review?.title || "");
-  const [body, setBody] = useState(review?.body || "");
-  const [quotes, setQuotes] = useState<string[]>(
-    review?.quotes.map((q) => q.text) || []
-  );
+  // When editing a published review with a draft, load draft content
+  const initialTitle = (hasDraft ? review?.draftTitle : review?.title) || "";
+  const initialBody = (hasDraft ? review?.draftBody : review?.body) || "";
+  const initialQuotes = hasDraft
+    ? review?.draftQuotes || []
+    : review?.quotes.map((q) => q.text) || [];
+
+  const [title, setTitle] = useState(initialTitle);
+  const [body, setBody] = useState(initialBody);
+  const [quotes, setQuotes] = useState<string[]>(initialQuotes);
   const [coverImageUrl, setCoverImageUrl] = useState<string | null>(
     review?.coverImageUrl || null
   );
   const [showPreview, setShowPreview] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [discarding, setDiscarding] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSave(status: "Draft" | "Published") {
@@ -46,6 +54,21 @@ export default function ReviewForm({ review }: ReviewFormProps) {
       setError(err instanceof Error ? err.message : "Failed to save review");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleDiscardDraft() {
+    if (!review) return;
+    setError(null);
+    setDiscarding(true);
+    try {
+      await discardDraft(review.id);
+      router.push("/dashboard");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to discard draft");
+    } finally {
+      setDiscarding(false);
     }
   }
 
@@ -68,6 +91,14 @@ export default function ReviewForm({ review }: ReviewFormProps) {
 
   return (
     <div className="space-y-6">
+      {isPublished && (
+        <div className="rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+          {hasDraft
+            ? "You are editing a draft revision. The published version remains live until you publish this draft."
+            : "This review is published. Saving as draft will create a separate draft revision without affecting the live version."}
+        </div>
+      )}
+
       {error && (
         <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
@@ -140,7 +171,7 @@ export default function ReviewForm({ review }: ReviewFormProps) {
           disabled={saving || !title.trim() || !body.trim()}
           className="rounded-md border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50 disabled:opacity-50"
         >
-          {saving ? "Saving..." : "Save Draft"}
+          {saving ? "Saving..." : isPublished ? "Save Draft Revision" : "Save Draft"}
         </button>
         <button
           type="button"
@@ -150,6 +181,16 @@ export default function ReviewForm({ review }: ReviewFormProps) {
         >
           {saving ? "Publishing..." : "Publish"}
         </button>
+        {hasDraft && (
+          <button
+            type="button"
+            onClick={handleDiscardDraft}
+            disabled={discarding}
+            className="text-sm text-red-600 hover:text-red-800 disabled:opacity-50"
+          >
+            {discarding ? "Discarding..." : "Discard Draft"}
+          </button>
+        )}
         <button
           type="button"
           onClick={() => router.back()}

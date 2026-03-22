@@ -1,7 +1,10 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getReviewBySlug } from "@/lib/api";
+import { auth } from "@/lib/auth";
 import MarkdownPreview from "@/components/MarkdownPreview";
+import Link from "next/link";
+import UnpublishButton from "@/components/UnpublishButton";
 
 interface ReviewPageProps {
   params: Promise<{ slug: string }>;
@@ -39,6 +42,9 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
     notFound();
   }
 
+  const session = await auth();
+  const isAuthor = session?.user?.id === review.authorId;
+
   const date = new Date(review.createdAt).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
@@ -58,7 +64,20 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
       )}
 
       <header className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900">{review.title}</h1>
+        <div className="flex items-start justify-between gap-4">
+          <h1 className="text-4xl font-bold text-gray-900">{review.title}</h1>
+          {isAuthor && (
+            <div className="flex shrink-0 gap-2">
+              <Link
+                href={`/dashboard/reviews/${review.id}/edit`}
+                className="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+              >
+                Edit
+              </Link>
+              <UnpublishButton reviewId={review.id} />
+            </div>
+          )}
+        </div>
         <div className="mt-4 flex items-center gap-4 text-sm text-gray-500">
           <span>By {review.authorName}</span>
           <span>{date}</span>

@@ -47,6 +47,16 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
             .IsRequired()
             .HasMaxLength(100);
 
+        builder.Property(r => r.DraftTitle)
+            .HasMaxLength(200);
+
+        builder.Property(r => r.DraftBody);
+
+        builder.Property(r => r.DraftQuotes)
+            .HasColumnType("jsonb");
+
+        builder.Ignore(r => r.HasDraft);
+
         builder.HasMany(r => r.Quotes)
             .WithOne()
             .HasForeignKey(q => q.ReviewId)

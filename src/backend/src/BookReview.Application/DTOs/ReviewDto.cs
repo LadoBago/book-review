@@ -13,4 +13,8 @@ public class ReviewDto
     public DateTimeOffset CreatedAt { get; init; }
     public DateTimeOffset UpdatedAt { get; init; }
     public List<QuoteDto> Quotes { get; init; } = [];
+    public bool HasDraft { get; init; }
+    public string? DraftTitle { get; init; }
+    public string? DraftBody { get; init; }
+    public List<string>? DraftQuotes { get; init; }
 }

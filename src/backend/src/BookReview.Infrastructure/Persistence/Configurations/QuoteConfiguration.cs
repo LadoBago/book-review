@@ -13,5 +13,9 @@ public class QuoteConfiguration : IEntityTypeConfiguration<Quote>
         builder.Property(q => q.Text)
             .IsRequired()
             .HasMaxLength(500);
+
+        builder.Property(q => q.SortOrder)
+            .IsRequired()
+            .HasDefaultValue(0);
     }
 }
