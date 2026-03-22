@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/BookReview.Application/BookReview.Application.csproj" />
+    <Project Path="src/BookReview.Domain/BookReview.Domain.csproj" />
+    <Project Path="src/BookReview.Infrastructure/BookReview.Infrastructure.csproj" />
+    <Project Path="src/BookReview.Presentation/BookReview.Presentation.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/BookReview.Application.Tests/BookReview.Application.Tests.csproj" />
+    <Project Path="tests/BookReview.Domain.Tests/BookReview.Domain.Tests.csproj" />
+    <Project Path="tests/BookReview.Infrastructure.Tests/BookReview.Infrastructure.Tests.csproj" />
+  </Folder>
+</Solution>

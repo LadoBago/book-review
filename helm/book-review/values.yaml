@@ -1,0 +1,60 @@
+api:
+  replicaCount: 1
+  image:
+    repository: book-review-api
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 5000
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  env:
+    ASPNETCORE_ENVIRONMENT: Production
+    Keycloak__Audience: book-review-api
+
+web:
+  replicaCount: 1
+  image:
+    repository: book-review-web
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 3000
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi
+  env:
+    NEXTAUTH_URL: https://bookreview.example.com
+    KEYCLOAK_CLIENT_ID: book-review-web
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  host: bookreview.example.com
+  tls:
+    enabled: true
+    secretName: book-review-tls
+
+secrets:
+  dbConnectionString: ""
+  azureStorageConnectionString: ""
+  keycloakAuthority: ""
+  nextauthSecret: ""
+  keycloakIssuer: ""
+
+configMap:
+  otelEndpoint: ""
+  otelServiceName: book-review-api
