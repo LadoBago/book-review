@@ -4,11 +4,13 @@ using BookReview.Presentation.Extensions;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace BookReview.Presentation.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[EnableRateLimiting("fixed")]
 public class ReviewsController : ControllerBase
 {
     private readonly IReviewService _reviewService;
@@ -32,12 +34,14 @@ public class ReviewsController : ControllerBase
         [FromQuery] string? search = null,
         CancellationToken cancellationToken = default)
     {
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 100);
         var result = await _reviewService.GetPublishedAsync(page, pageSize, search, cancellationToken);
         return Ok(result);
     }
 
     [HttpGet("{slug}")]
-    public async Task<ActionResult<ReviewDto>> GetBySlug(string slug, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<ReviewPublicDto>> GetBySlug(string slug, CancellationToken cancellationToken = default)
     {
         var review = await _reviewService.GetBySlugAsync(slug, cancellationToken);
         return Ok(review);
@@ -47,7 +51,8 @@ public class ReviewsController : ControllerBase
     [HttpGet("by-id/{id:guid}")]
     public async Task<ActionResult<ReviewDto>> GetById(Guid id, CancellationToken cancellationToken = default)
     {
-        var review = await _reviewService.GetByIdAsync(id, cancellationToken);
+        var authorId = User.GetUserId();
+        var review = await _reviewService.GetByIdAsync(id, authorId, cancellationToken);
         return Ok(review);
     }
 
@@ -58,6 +63,8 @@ public class ReviewsController : ControllerBase
         [FromQuery] int pageSize = 10,
         CancellationToken cancellationToken = default)
     {
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 100);
         var authorId = User.GetUserId();
         var result = await _reviewService.GetByAuthorAsync(authorId, page, pageSize, cancellationToken);
         return Ok(result);
@@ -72,7 +79,7 @@ public class ReviewsController : ControllerBase
         await _createValidator.ValidateAndThrowAsync(request, cancellationToken);
 
         var authorId = User.GetUserId();
-        var authorName = User.GetUserName();
+        var authorName = User.GetFullName();
         var review = await _reviewService.CreateAsync(request, authorId, authorName, cancellationToken);
         return CreatedAtAction(nameof(GetBySlug), new { slug = review.Slug }, review);
     }
@@ -127,13 +134,21 @@ public class ReviewsController : ControllerBase
         return Ok(review);
     }
 
+    private const long MaxCoverImageSizeBytes = 5 * 1024 * 1024; // 5MB
+
     [Authorize]
     [HttpPost("{id:guid}/cover")]
     public async Task<ActionResult<ReviewDto>> UploadCover(
         Guid id,
-        IFormFile file,
+        IFormFile? file,
         CancellationToken cancellationToken = default)
     {
+        if (file is null || file.Length == 0)
+            return BadRequest(new { detail = "A file is required." });
+
+        if (file.Length > MaxCoverImageSizeBytes)
+            return BadRequest(new { detail = "File size exceeds the maximum allowed size of 5MB." });
+
         var authorId = User.GetUserId();
         using var stream = file.OpenReadStream();
         var review = await _reviewService.UploadCoverImageAsync(id, stream, file.FileName, authorId, cancellationToken);

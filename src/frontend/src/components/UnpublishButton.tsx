@@ -15,15 +15,18 @@ export default function UnpublishButton({ reviewId, variant = "button" }: Unpubl
   const [loading, setLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
+  const [error, setError] = useState<string | null>(null);
+
   async function handleUnpublish() {
     setShowConfirm(false);
+    setError(null);
     setLoading(true);
     try {
       await unpublishReview(reviewId);
       router.push("/dashboard");
       router.refresh();
-    } catch {
-      alert("Failed to unpublish review");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to unpublish review");
     } finally {
       setLoading(false);
     }
@@ -48,6 +51,7 @@ export default function UnpublishButton({ reviewId, variant = "button" }: Unpubl
           {loading ? "Unpublishing..." : "Unpublish"}
         </button>
       )}
+      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
       <ConfirmModal
         open={showConfirm}
         title="Unpublish Review"

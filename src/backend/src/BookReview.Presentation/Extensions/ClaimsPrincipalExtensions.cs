@@ -13,9 +13,24 @@ public static class ClaimsPrincipalExtensions
 
     public static string GetUserName(this ClaimsPrincipal principal)
     {
-        return principal.FindFirst("preferred_username")?.Value
-            ?? principal.FindFirst("name")?.Value
-            ?? principal.FindFirst(ClaimTypes.Name)?.Value
+        return GetFirstNonEmptyClaim(principal, "preferred_username", "name", ClaimTypes.Name)
             ?? "Unknown";
+    }
+
+    public static string GetFullName(this ClaimsPrincipal principal)
+    {
+        return GetFirstNonEmptyClaim(principal, "name", ClaimTypes.Name, "given_name", "preferred_username")
+            ?? "Unknown";
+    }
+
+    private static string? GetFirstNonEmptyClaim(ClaimsPrincipal principal, params string[] claimTypes)
+    {
+        foreach (var type in claimTypes)
+        {
+            var value = principal.FindFirst(type)?.Value;
+            if (!string.IsNullOrWhiteSpace(value))
+                return value;
+        }
+        return null;
     }
 }

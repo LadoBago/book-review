@@ -1,20 +1,30 @@
+export const ReviewStatus = {
+  Draft: "Draft",
+  Published: "Published",
+} as const;
+
+export type ReviewStatus = (typeof ReviewStatus)[keyof typeof ReviewStatus];
+
 export interface QuoteDto {
   id: string;
   text: string;
 }
 
-export interface ReviewDto {
+export interface ReviewPublicDto {
   id: string;
   title: string;
   body: string;
   coverImageUrl: string | null;
   slug: string;
-  status: string;
+  status: ReviewStatus;
   authorId: string;
   authorName: string;
   createdAt: string;
   updatedAt: string;
   quotes: QuoteDto[];
+}
+
+export interface ReviewDto extends ReviewPublicDto {
   hasDraft: boolean;
   draftTitle: string | null;
   draftBody: string | null;
@@ -26,7 +36,7 @@ export interface ReviewSummaryDto {
   title: string;
   slug: string;
   coverImageUrl: string | null;
-  status: string;
+  status: ReviewStatus;
   authorName: string;
   createdAt: string;
   hasDraft: boolean;

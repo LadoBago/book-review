@@ -18,25 +18,34 @@ public class ReviewService : IReviewService
         _storageService = storageService;
     }
 
-    public async Task<ReviewDto> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<ReviewDto> GetByIdAsync(Guid id, string authorId, CancellationToken cancellationToken = default)
     {
         var review = await _reviewRepository.GetByIdAsync(id, cancellationToken)
             ?? throw new NotFoundException("Review not found.");
 
+        if (review.AuthorId != authorId)
+            throw new ForbiddenException("You can only view your own reviews.");
+
         return review.ToDto();
     }
 
-    public async Task<ReviewDto> GetBySlugAsync(string slug, CancellationToken cancellationToken = default)
+    public async Task<ReviewPublicDto> GetBySlugAsync(string slug, CancellationToken cancellationToken = default)
     {
         var review = await _reviewRepository.GetBySlugAsync(slug, cancellationToken)
             ?? throw new NotFoundException("Review not found.");
 
-        return review.ToDto();
+        if (review.Status != ReviewStatus.Published)
+            throw new NotFoundException("Review not found.");
+
+        return review.ToPublicDto();
     }
 
     public async Task<PagedResult<ReviewSummaryDto>> GetPublishedAsync(
         int page, int pageSize, string? searchTerm = null, CancellationToken cancellationToken = default)
     {
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
         var (items, totalCount) = await _reviewRepository.GetPagedAsync(
             page, pageSize, searchTerm, ReviewStatus.Published, cancellationToken: cancellationToken);
 
@@ -52,6 +61,9 @@ public class ReviewService : IReviewService
     public async Task<PagedResult<ReviewSummaryDto>> GetByAuthorAsync(
         string authorId, int page, int pageSize, CancellationToken cancellationToken = default)
     {
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
         var (items, totalCount) = await _reviewRepository.GetPagedAsync(
             page, pageSize, authorId: authorId, cancellationToken: cancellationToken);
 
@@ -69,7 +81,7 @@ public class ReviewService : IReviewService
     {
         var review = new Review(request.Title, request.Body, authorId, authorName, request.Quotes);
 
-        if (request.Status == "Published")
+        if (request.Status == nameof(ReviewStatus.Published))
             review.Publish();
 
         await _reviewRepository.AddAsync(review, cancellationToken);
@@ -93,7 +105,7 @@ public class ReviewService : IReviewService
 
         if (review.Status == ReviewStatus.Published)
         {
-            if (targetStatus == "Draft")
+            if (targetStatus == nameof(ReviewStatus.Draft))
             {
                 // Save as draft revision — published version stays live
                 review.SaveDraftRevision(title, body, quotes?.ToList());
@@ -110,7 +122,7 @@ public class ReviewService : IReviewService
             // Review is still a draft — update directly
             review.UpdateContent(title, body, quotes);
 
-            if (targetStatus == "Published")
+            if (targetStatus == nameof(ReviewStatus.Published))
                 review.Publish();
         }
 

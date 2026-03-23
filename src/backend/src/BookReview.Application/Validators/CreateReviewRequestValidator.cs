@@ -1,4 +1,5 @@
 using BookReview.Application.DTOs;
+using BookReview.Domain.Entities;
 using FluentValidation;
 
 namespace BookReview.Application.Validators;
@@ -12,10 +13,11 @@ public class CreateReviewRequestValidator : AbstractValidator<CreateReviewReques
             .MaximumLength(200).WithMessage("Title must not exceed 200 characters.");
 
         RuleFor(x => x.Body)
-            .NotEmpty().WithMessage("Body is required.");
+            .NotEmpty().WithMessage("Body is required.")
+            .MaximumLength(100_000).WithMessage("Body must not exceed 100,000 characters.");
 
         RuleFor(x => x.Status)
-            .Must(s => s is "Draft" or "Published")
+            .Must(s => s is nameof(ReviewStatus.Draft) or nameof(ReviewStatus.Published))
             .WithMessage("Status must be either 'Draft' or 'Published'.");
 
         RuleFor(x => x.Quotes)

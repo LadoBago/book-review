@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getMyReviews } from "@/lib/api";
+import { ReviewStatus } from "@/types/review";
 import Pagination from "@/components/Pagination";
 import UnpublishButton from "@/components/UnpublishButton";
 import PublishButton from "@/components/PublishButton";
@@ -67,7 +68,7 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
                     <td className="px-4 py-3">
                       <span
                         className={`inline-block rounded-full px-2 py-1 text-xs font-medium ${
-                          review.status === "Published"
+                          review.status === ReviewStatus.Published
                             ? "bg-green-100 text-green-700"
                             : "bg-yellow-100 text-yellow-700"
                         }`}
@@ -91,7 +92,7 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
                         >
                           Edit
                         </Link>
-                        {review.status === "Published" ? (
+                        {review.status === ReviewStatus.Published ? (
                           <>
                             <UnpublishButton reviewId={review.id} variant="link" />
                             {review.hasDraft && (
@@ -101,7 +102,7 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
                         ) : (
                           <PublishButton reviewId={review.id} variant="link" />
                         )}
-                        {review.status !== "Published" && (
+                        {review.status !== ReviewStatus.Published && (
                           <DeleteButton reviewId={review.id} />
                         )}
                       </div>

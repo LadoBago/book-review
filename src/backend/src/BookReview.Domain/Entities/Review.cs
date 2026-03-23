@@ -21,7 +21,7 @@ public class Review
 
     public string? DraftTitle { get; private set; }
     public string? DraftBody { get; private set; }
-    public List<string>? DraftQuotes { get; private set; }
+    public IReadOnlyList<string>? DraftQuotes { get; private set; }
     public bool HasDraft => DraftTitle != null;
 
     private Review() { }
@@ -76,15 +76,10 @@ public class Review
         UpdatedAt = DateTimeOffset.UtcNow;
 
         if (quotes != null)
-        {
-            _quotes.Clear();
-            var order = 0;
-            foreach (var quote in quotes)
-                _quotes.Add(new Quote(quote, Id, order++));
-        }
+            ReplaceQuotes(quotes);
     }
 
-    public void SaveDraftRevision(string title, string body, List<string>? quotes = null)
+    public void SaveDraftRevision(string title, string body, IReadOnlyList<string>? quotes = null)
     {
         if (Status != ReviewStatus.Published)
             throw new DomainException("Only published reviews can have draft revisions.");
@@ -114,13 +109,10 @@ public class Review
 
         Body = DraftBody!;
 
-        _quotes.Clear();
         if (DraftQuotes != null)
-        {
-            var order = 0;
-            foreach (var quote in DraftQuotes)
-                _quotes.Add(new Quote(quote, Id, order++));
-        }
+            ReplaceQuotes(DraftQuotes);
+        else
+            _quotes.Clear();
 
         DraftTitle = null;
         DraftBody = null;
@@ -161,5 +153,13 @@ public class Review
 
         Status = ReviewStatus.Draft;
         UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    private void ReplaceQuotes(IEnumerable<string> quotes)
+    {
+        _quotes.Clear();
+        var order = 0;
+        foreach (var quote in quotes)
+            _quotes.Add(new Quote(quote, Id, order++));
     }
 }

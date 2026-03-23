@@ -4,8 +4,8 @@ namespace BookReview.Application.Interfaces;
 
 public interface IReviewService
 {
-    Task<ReviewDto> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<ReviewDto> GetBySlugAsync(string slug, CancellationToken cancellationToken = default);
+    Task<ReviewDto> GetByIdAsync(Guid id, string authorId, CancellationToken cancellationToken = default);
+    Task<ReviewPublicDto> GetBySlugAsync(string slug, CancellationToken cancellationToken = default);
     Task<PagedResult<ReviewSummaryDto>> GetPublishedAsync(int page, int pageSize, string? searchTerm = null, CancellationToken cancellationToken = default);
     Task<PagedResult<ReviewSummaryDto>> GetByAuthorAsync(string authorId, int page, int pageSize, CancellationToken cancellationToken = default);
     Task<ReviewDto> CreateAsync(CreateReviewRequest request, string authorId, string authorName, CancellationToken cancellationToken = default);

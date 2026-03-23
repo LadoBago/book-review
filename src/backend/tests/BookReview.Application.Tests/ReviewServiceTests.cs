@@ -63,19 +63,31 @@ public class ReviewServiceTests
             .Returns((Review?)null);
 
         await Assert.ThrowsAsync<NotFoundException>(() =>
-            _service.GetByIdAsync(Guid.NewGuid()));
+            _service.GetByIdAsync(Guid.NewGuid(), "user-1"));
     }
 
     [Fact]
-    public async Task GetBySlugAsync_ExistingReview_ReturnsDto()
+    public async Task GetBySlugAsync_PublishedReview_ReturnsDto()
     {
         var review = new Review("Title", "Body", "user-1", "John");
+        review.Publish();
         _repository.GetBySlugAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(review);
 
         var result = await _service.GetBySlugAsync("title-abc123");
 
         Assert.Equal("Title", result.Title);
+    }
+
+    [Fact]
+    public async Task GetBySlugAsync_DraftReview_ThrowsNotFoundException()
+    {
+        var review = new Review("Title", "Body", "user-1", "John");
+        _repository.GetBySlugAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(review);
+
+        await Assert.ThrowsAsync<NotFoundException>(() =>
+            _service.GetBySlugAsync("title-abc123"));
     }
 
     [Fact]
@@ -175,5 +187,142 @@ public class ReviewServiceTests
         using var stream = new MemoryStream();
         await Assert.ThrowsAsync<ForbiddenException>(() =>
             _service.UploadCoverImageAsync(review.Id, stream, "cover.jpg", "user-2"));
+    }
+
+    // --- PublishAsync tests ---
+
+    [Fact]
+    public async Task PublishAsync_DraftReview_PublishesAndReturnsDto()
+    {
+        var review = new Review("Title", "Body", "user-1", "John");
+        _repository.GetByIdAsync(review.Id, Arg.Any<CancellationToken>())
+            .Returns(review);
+
+        var result = await _service.PublishAsync(review.Id, "user-1");
+
+        Assert.Equal("Published", result.Status);
+        await _repository.Received(1).UpdateAsync(review, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task PublishAsync_PublishedReviewWithDraft_PublishesDraftRevision()
+    {
+        var review = new Review("Title", "Body", "user-1", "John");
+        review.Publish();
+        review.SaveDraftRevision("New Title", "New Body", ["Quote 1"]);
+        _repository.GetByIdAsync(review.Id, Arg.Any<CancellationToken>())
+            .Returns(review);
+
+        var result = await _service.PublishAsync(review.Id, "user-1");
+
+        Assert.Equal("Published", result.Status);
+        Assert.Equal("New Title", result.Title);
+        Assert.Equal("New Body", result.Body);
+        Assert.False(result.HasDraft);
+    }
+
+    [Fact]
+    public async Task PublishAsync_AlreadyPublishedNoDraft_ThrowsDomainException()
+    {
+        var review = new Review("Title", "Body", "user-1", "John");
+        review.Publish();
+        _repository.GetByIdAsync(review.Id, Arg.Any<CancellationToken>())
+            .Returns(review);
+
+        await Assert.ThrowsAsync<DomainException>(() =>
+            _service.PublishAsync(review.Id, "user-1"));
+    }
+
+    [Fact]
+    public async Task PublishAsync_DifferentAuthor_ThrowsForbiddenException()
+    {
+        var review = new Review("Title", "Body", "user-1", "John");
+        _repository.GetByIdAsync(review.Id, Arg.Any<CancellationToken>())
+            .Returns(review);
+
+        await Assert.ThrowsAsync<ForbiddenException>(() =>
+            _service.PublishAsync(review.Id, "user-2"));
+    }
+
+    // --- UnpublishAsync tests ---
+
+    [Fact]
+    public async Task UnpublishAsync_PublishedReview_UnpublishesAndReturnsDto()
+    {
+        var review = new Review("Title", "Body", "user-1", "John");
+        review.Publish();
+        _repository.GetByIdAsync(review.Id, Arg.Any<CancellationToken>())
+            .Returns(review);
+
+        var result = await _service.UnpublishAsync(review.Id, "user-1");
+
+        Assert.Equal("Draft", result.Status);
+        await _repository.Received(1).UpdateAsync(review, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task UnpublishAsync_DraftReview_ThrowsDomainException()
+    {
+        var review = new Review("Title", "Body", "user-1", "John");
+        _repository.GetByIdAsync(review.Id, Arg.Any<CancellationToken>())
+            .Returns(review);
+
+        await Assert.ThrowsAsync<DomainException>(() =>
+            _service.UnpublishAsync(review.Id, "user-1"));
+    }
+
+    [Fact]
+    public async Task UnpublishAsync_DifferentAuthor_ThrowsForbiddenException()
+    {
+        var review = new Review("Title", "Body", "user-1", "John");
+        review.Publish();
+        _repository.GetByIdAsync(review.Id, Arg.Any<CancellationToken>())
+            .Returns(review);
+
+        await Assert.ThrowsAsync<ForbiddenException>(() =>
+            _service.UnpublishAsync(review.Id, "user-2"));
+    }
+
+    // --- DiscardDraftAsync tests ---
+
+    [Fact]
+    public async Task DiscardDraftAsync_ReviewWithDraft_DiscardsAndReturnsDto()
+    {
+        var review = new Review("Title", "Body", "user-1", "John");
+        review.Publish();
+        review.SaveDraftRevision("Draft Title", "Draft Body");
+        _repository.GetByIdAsync(review.Id, Arg.Any<CancellationToken>())
+            .Returns(review);
+
+        var result = await _service.DiscardDraftAsync(review.Id, "user-1");
+
+        Assert.False(result.HasDraft);
+        Assert.Null(result.DraftTitle);
+        Assert.Null(result.DraftBody);
+        await _repository.Received(1).UpdateAsync(review, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task DiscardDraftAsync_NoDraft_ThrowsDomainException()
+    {
+        var review = new Review("Title", "Body", "user-1", "John");
+        _repository.GetByIdAsync(review.Id, Arg.Any<CancellationToken>())
+            .Returns(review);
+
+        await Assert.ThrowsAsync<DomainException>(() =>
+            _service.DiscardDraftAsync(review.Id, "user-1"));
+    }
+
+    [Fact]
+    public async Task DiscardDraftAsync_DifferentAuthor_ThrowsForbiddenException()
+    {
+        var review = new Review("Title", "Body", "user-1", "John");
+        review.Publish();
+        review.SaveDraftRevision("Draft Title", "Draft Body");
+        _repository.GetByIdAsync(review.Id, Arg.Any<CancellationToken>())
+            .Returns(review);
+
+        await Assert.ThrowsAsync<ForbiddenException>(() =>
+            _service.DiscardDraftAsync(review.Id, "user-2"));
     }
 }

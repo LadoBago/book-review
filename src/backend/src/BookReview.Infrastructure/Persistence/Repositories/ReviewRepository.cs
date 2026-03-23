@@ -69,6 +69,8 @@ public class ReviewRepository : IReviewRepository
 
     public async Task UpdateAsync(Review review, CancellationToken cancellationToken = default)
     {
+        await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+
         // Delete all existing quotes for this review directly in DB
         await _context.Quotes
             .Where(q => q.ReviewId == review.Id)
@@ -88,6 +90,7 @@ public class ReviewRepository : IReviewRepository
         }
 
         await _context.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
     }
 
     public async Task DeleteAsync(Review review, CancellationToken cancellationToken = default)

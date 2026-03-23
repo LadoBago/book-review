@@ -1,4 +1,5 @@
 using BookReview.Application.DTOs;
+using BookReview.Domain.Entities;
 using FluentValidation;
 
 namespace BookReview.Application.Validators;
@@ -17,10 +18,11 @@ public class UpdateReviewRequestValidator : AbstractValidator<UpdateReviewReques
 
         RuleFor(x => x.Body)
             .NotEmpty().WithMessage("Body cannot be empty.")
+            .MaximumLength(100_000).WithMessage("Body must not exceed 100,000 characters.")
             .When(x => x.Body != null);
 
         RuleFor(x => x.Status)
-            .Must(s => s is "Draft" or "Published")
+            .Must(s => s is nameof(ReviewStatus.Draft) or nameof(ReviewStatus.Published))
             .WithMessage("Status must be either 'Draft' or 'Published'.")
             .When(x => x.Status != null);
 

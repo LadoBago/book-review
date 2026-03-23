@@ -1,8 +1,10 @@
+using System.Threading.RateLimiting;
 using BookReview.Application;
 using BookReview.Infrastructure;
 using BookReview.Infrastructure.Persistence;
 using BookReview.Presentation.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using OpenTelemetry.Resources;
@@ -50,6 +52,17 @@ try
 
     builder.Services.AddAuthorization();
 
+    builder.Services.AddRateLimiter(options =>
+    {
+        options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+        options.AddFixedWindowLimiter("fixed", limiter =>
+        {
+            limiter.PermitLimit = 60;
+            limiter.Window = TimeSpan.FromMinutes(1);
+            limiter.QueueLimit = 0;
+        });
+    });
+
     var otelEndpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
     if (!string.IsNullOrWhiteSpace(otelEndpoint))
     {
@@ -78,6 +91,7 @@ try
         await dbContext.Database.MigrateAsync();
     }
 
+    app.UseRateLimiter();
     app.UseMiddleware<ExceptionHandlingMiddleware>();
     app.UseSerilogRequestLogging();
     app.UseHttpMetrics();

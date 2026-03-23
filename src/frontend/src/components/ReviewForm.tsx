@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useReducer } from "react";
 import { useRouter } from "next/navigation";
 import { createReview, updateReview, uploadCoverImage, discardDraft } from "@/lib/api";
-import { ReviewDto } from "@/types/review";
+import { ReviewDto, ReviewStatus } from "@/types/review";
 import MarkdownEditor from "./MarkdownEditor";
 import MarkdownPreview from "./MarkdownPreview";
 import CoverImageUpload from "./CoverImageUpload";
@@ -13,34 +13,71 @@ interface ReviewFormProps {
   review?: ReviewDto;
 }
 
+interface FormState {
+  title: string;
+  body: string;
+  quotes: string[];
+  coverImageUrl: string | null;
+  showPreview: boolean;
+  saving: boolean;
+  uploading: boolean;
+  discarding: boolean;
+  error: string | null;
+}
+
+type FormAction =
+  | { type: "SET_FIELD"; field: "title" | "body"; value: string }
+  | { type: "SET_QUOTES"; quotes: string[] }
+  | { type: "SET_COVER_URL"; url: string | null }
+  | { type: "TOGGLE_PREVIEW"; show: boolean }
+  | { type: "SET_LOADING"; operation: "saving" | "uploading" | "discarding"; loading: boolean }
+  | { type: "SET_ERROR"; error: string | null };
+
+function formReducer(state: FormState, action: FormAction): FormState {
+  switch (action.type) {
+    case "SET_FIELD":
+      return { ...state, [action.field]: action.value };
+    case "SET_QUOTES":
+      return { ...state, quotes: action.quotes };
+    case "SET_COVER_URL":
+      return { ...state, coverImageUrl: action.url };
+    case "TOGGLE_PREVIEW":
+      return { ...state, showPreview: action.show };
+    case "SET_LOADING":
+      return { ...state, [action.operation]: action.loading, error: action.loading ? null : state.error };
+    case "SET_ERROR":
+      return { ...state, error: action.error };
+  }
+}
+
+function initFormState(review?: ReviewDto): FormState {
+  const hasDraft = review?.hasDraft ?? false;
+  return {
+    title: (hasDraft ? review?.draftTitle : review?.title) || "",
+    body: (hasDraft ? review?.draftBody : review?.body) || "",
+    quotes: hasDraft
+      ? review?.draftQuotes || []
+      : review?.quotes.map((q) => q.text) || [],
+    coverImageUrl: review?.coverImageUrl || null,
+    showPreview: false,
+    saving: false,
+    uploading: false,
+    discarding: false,
+    error: null,
+  };
+}
+
 export default function ReviewForm({ review }: ReviewFormProps) {
   const router = useRouter();
   const isEditing = !!review;
-  const isPublished = review?.status === "Published";
+  const isPublished = review?.status === ReviewStatus.Published;
   const hasDraft = review?.hasDraft ?? false;
 
-  // When editing a published review with a draft, load draft content
-  const initialTitle = (hasDraft ? review?.draftTitle : review?.title) || "";
-  const initialBody = (hasDraft ? review?.draftBody : review?.body) || "";
-  const initialQuotes = hasDraft
-    ? review?.draftQuotes || []
-    : review?.quotes.map((q) => q.text) || [];
+  const [state, dispatch] = useReducer(formReducer, review, initFormState);
+  const { title, body, quotes, coverImageUrl, showPreview, saving, uploading, discarding, error } = state;
 
-  const [title, setTitle] = useState(initialTitle);
-  const [body, setBody] = useState(initialBody);
-  const [quotes, setQuotes] = useState<string[]>(initialQuotes);
-  const [coverImageUrl, setCoverImageUrl] = useState<string | null>(
-    review?.coverImageUrl || null
-  );
-  const [showPreview, setShowPreview] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [discarding, setDiscarding] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function handleSave(status: "Draft" | "Published") {
-    setError(null);
-    setSaving(true);
+  async function handleSave(status: ReviewStatus) {
+    dispatch({ type: "SET_LOADING", operation: "saving", loading: true });
     try {
       const filteredQuotes = quotes.filter((q) => q.trim() !== "");
       if (isEditing) {
@@ -51,41 +88,39 @@ export default function ReviewForm({ review }: ReviewFormProps) {
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save review");
+      dispatch({ type: "SET_ERROR", error: err instanceof Error ? err.message : "Failed to save review" });
     } finally {
-      setSaving(false);
+      dispatch({ type: "SET_LOADING", operation: "saving", loading: false });
     }
   }
 
   async function handleDiscardDraft() {
     if (!review) return;
-    setError(null);
-    setDiscarding(true);
+    dispatch({ type: "SET_LOADING", operation: "discarding", loading: true });
     try {
       await discardDraft(review.id);
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to discard draft");
+      dispatch({ type: "SET_ERROR", error: err instanceof Error ? err.message : "Failed to discard draft" });
     } finally {
-      setDiscarding(false);
+      dispatch({ type: "SET_LOADING", operation: "discarding", loading: false });
     }
   }
 
   async function handleImageUpload(file: File) {
     if (!isEditing) {
-      setError("Please save the review as a draft first before uploading an image.");
+      dispatch({ type: "SET_ERROR", error: "Please save the review as a draft first before uploading an image." });
       return;
     }
-    setUploading(true);
-    setError(null);
+    dispatch({ type: "SET_LOADING", operation: "uploading", loading: true });
     try {
       const updated = await uploadCoverImage(review.id, file);
-      setCoverImageUrl(updated.coverImageUrl);
+      dispatch({ type: "SET_COVER_URL", url: updated.coverImageUrl });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to upload image");
+      dispatch({ type: "SET_ERROR", error: err instanceof Error ? err.message : "Failed to upload image" });
     } finally {
-      setUploading(false);
+      dispatch({ type: "SET_LOADING", operation: "uploading", loading: false });
     }
   }
 
@@ -112,7 +147,7 @@ export default function ReviewForm({ review }: ReviewFormProps) {
         <input
           type="text"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={(e) => dispatch({ type: "SET_FIELD", field: "title", value: e.target.value })}
           placeholder="Book title or review title"
           maxLength={200}
           className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -128,7 +163,7 @@ export default function ReviewForm({ review }: ReviewFormProps) {
       <div className="flex gap-2 border-b border-gray-200">
         <button
           type="button"
-          onClick={() => setShowPreview(false)}
+          onClick={() => dispatch({ type: "TOGGLE_PREVIEW", show: false })}
           className={`px-4 py-2 text-sm font-medium ${
             !showPreview
               ? "border-b-2 border-gray-900 text-gray-900"
@@ -139,7 +174,7 @@ export default function ReviewForm({ review }: ReviewFormProps) {
         </button>
         <button
           type="button"
-          onClick={() => setShowPreview(true)}
+          onClick={() => dispatch({ type: "TOGGLE_PREVIEW", show: true })}
           className={`px-4 py-2 text-sm font-medium ${
             showPreview
               ? "border-b-2 border-gray-900 text-gray-900"
@@ -159,15 +194,15 @@ export default function ReviewForm({ review }: ReviewFormProps) {
           )}
         </div>
       ) : (
-        <MarkdownEditor value={body} onChange={setBody} />
+        <MarkdownEditor value={body} onChange={(v) => dispatch({ type: "SET_FIELD", field: "body", value: v })} />
       )}
 
-      <QuoteList quotes={quotes} onChange={setQuotes} />
+      <QuoteList quotes={quotes} onChange={(q) => dispatch({ type: "SET_QUOTES", quotes: q })} />
 
       <div className="flex items-center gap-3 border-t border-gray-200 pt-4">
         <button
           type="button"
-          onClick={() => handleSave("Draft")}
+          onClick={() => handleSave(ReviewStatus.Draft)}
           disabled={saving || !title.trim() || !body.trim()}
           className="rounded-md border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50 disabled:opacity-50"
         >
@@ -175,7 +210,7 @@ export default function ReviewForm({ review }: ReviewFormProps) {
         </button>
         <button
           type="button"
-          onClick={() => handleSave("Published")}
+          onClick={() => handleSave(ReviewStatus.Published)}
           disabled={saving || !title.trim() || !body.trim()}
           className="rounded-md bg-gray-900 px-4 py-2 text-sm text-white hover:bg-gray-700 disabled:opacity-50"
         >

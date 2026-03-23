@@ -1,6 +1,8 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
+
+const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
 
 interface CoverImageUploadProps {
   currentUrl: string | null;
@@ -14,10 +16,18 @@ export default function CoverImageUpload({
   uploading = false,
 }: CoverImageUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [sizeError, setSizeError] = useState<string | null>(null);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (file) onUpload(file);
+    if (!file) return;
+    setSizeError(null);
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      setSizeError("File size exceeds the maximum allowed size of 5MB.");
+      if (inputRef.current) inputRef.current.value = "";
+      return;
+    }
+    onUpload(file);
   }
 
   return (
@@ -52,6 +62,9 @@ export default function CoverImageUpload({
         </button>
         <span className="text-xs text-gray-500">JPEG, PNG, or WebP (max 5MB)</span>
       </div>
+      {sizeError && (
+        <p className="mt-1 text-xs text-red-600">{sizeError}</p>
+      )}
     </div>
   );
 }

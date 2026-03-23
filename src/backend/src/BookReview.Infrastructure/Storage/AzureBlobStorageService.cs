@@ -2,6 +2,7 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using BookReview.Application.Interfaces;
 using BookReview.Domain.Exceptions;
+using Microsoft.Extensions.Logging;
 
 namespace BookReview.Infrastructure.Storage;
 
@@ -23,10 +24,12 @@ public class AzureBlobStorageService : IStorageService
     };
 
     private readonly BlobContainerClient _containerClient;
+    private readonly ILogger<AzureBlobStorageService> _logger;
 
-    public AzureBlobStorageService(BlobServiceClient blobServiceClient)
+    public AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogger<AzureBlobStorageService> logger)
     {
         _containerClient = blobServiceClient.GetBlobContainerClient(ContainerName);
+        _logger = logger;
     }
 
     public async Task<string> UploadImageAsync(Stream stream, string fileName, CancellationToken cancellationToken = default)
@@ -44,7 +47,10 @@ public class AzureBlobStorageService : IStorageService
         if (fileName.Contains('/'))
         {
             var prefix = fileName[..fileName.LastIndexOf('/')];
-            blobName = $"{prefix}/{blobName}";
+            // Sanitize: strip path traversal characters
+            prefix = prefix.Replace("..", "").Replace("\\", "").Trim('/');
+            if (!string.IsNullOrEmpty(prefix))
+                blobName = $"{prefix}/{blobName}";
         }
 
         var blobClient = _containerClient.GetBlobClient(blobName);
@@ -74,9 +80,9 @@ public class AzureBlobStorageService : IStorageService
             var blobClient = _containerClient.GetBlobClient(blobName);
             await blobClient.DeleteIfExistsAsync(cancellationToken: cancellationToken);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Log but don't fail if deletion fails
+            _logger.LogWarning(ex, "Failed to delete blob image at {Url}", url);
         }
     }
 }

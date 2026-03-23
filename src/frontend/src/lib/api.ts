@@ -1,17 +1,18 @@
 import { auth } from "@/lib/auth";
-import { PagedResult, ReviewDto, ReviewSummaryDto } from "@/types/review";
+import { PagedResult, ReviewDto, ReviewPublicDto, ReviewStatus, ReviewSummaryDto } from "@/types/review";
 
 const API_BASE =
   typeof window === "undefined"
     ? process.env.API_INTERNAL_URL || "http://localhost:5000"
     : "";
 
-async function fetchApi<T>(path: string, options?: RequestInit): Promise<T> {
+async function fetchApi<T>(path: string, options?: RequestInit & { skipContentType?: boolean }): Promise<T> {
+  const { skipContentType, ...fetchOptions } = options ?? {};
   const res = await fetch(`${API_BASE}${path}`, {
-    ...options,
+    ...fetchOptions,
     headers: {
-      "Content-Type": "application/json",
-      ...options?.headers,
+      ...(skipContentType ? {} : { "Content-Type": "application/json" }),
+      ...fetchOptions?.headers,
     },
   });
 
@@ -20,7 +21,8 @@ async function fetchApi<T>(path: string, options?: RequestInit): Promise<T> {
     throw new Error(error.detail || `API error: ${res.status}`);
   }
 
-  return res.json();
+  const text = await res.text();
+  return text ? JSON.parse(text) : (undefined as T);
 }
 
 export async function getAuthHeaders(): Promise<Record<string, string>> {
@@ -57,7 +59,7 @@ export async function getPublishedReviews(
   return fetchApi(`/api/reviews?${params}`);
 }
 
-export async function getReviewBySlug(slug: string): Promise<ReviewDto> {
+export async function getReviewBySlug(slug: string): Promise<ReviewPublicDto> {
   return fetchApi(`/api/reviews/${encodeURIComponent(slug)}`);
 }
 
@@ -83,7 +85,7 @@ export async function getReviewById(id: string): Promise<ReviewDto> {
 export async function createReview(data: {
   title: string;
   body: string;
-  status: string;
+  status: ReviewStatus;
   quotes: string[];
 }): Promise<ReviewDto> {
   const headers = await getAuthHeaders();
@@ -99,7 +101,7 @@ export async function updateReview(
   data: {
     title?: string;
     body?: string;
-    status?: string;
+    status?: ReviewStatus;
     quotes?: string[];
   }
 ): Promise<ReviewDto> {
@@ -113,14 +115,10 @@ export async function updateReview(
 
 export async function deleteReview(id: string): Promise<void> {
   const headers = await getAuthHeaders();
-  const res = await fetch(`${API_BASE}/api/reviews/${id}`, {
+  await fetchApi(`/api/reviews/${id}`, {
     method: "DELETE",
     headers,
   });
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({}));
-    throw new Error(error.detail || `API error: ${res.status}`);
-  }
 }
 
 export async function publishReview(id: string): Promise<ReviewDto> {
@@ -151,20 +149,14 @@ export async function uploadCoverImage(
   id: string,
   file: File
 ): Promise<ReviewDto> {
-  const authHeaders = await getAuthHeaders();
+  const headers = await getAuthHeaders();
   const formData = new FormData();
   formData.append("file", file);
 
-  const res = await fetch(`${API_BASE}/api/reviews/${id}/cover`, {
+  return fetchApi(`/api/reviews/${id}/cover`, {
     method: "POST",
-    headers: authHeaders,
+    headers,
     body: formData,
+    skipContentType: true,
   });
-
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({}));
-    throw new Error(error.detail || `API error: ${res.status}`);
-  }
-
-  return res.json();
 }

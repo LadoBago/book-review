@@ -49,10 +49,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.expiresAt = account.expires_at;
         // Extract sub from access token to match backend's authorId
         if (account.access_token) {
-          const payload = JSON.parse(
-            Buffer.from(account.access_token.split(".")[1], "base64").toString()
-          );
-          token.sub = payload.sub;
+          try {
+            const parts = account.access_token.split(".");
+            if (parts.length === 3) {
+              const payload = JSON.parse(
+                Buffer.from(parts[1], "base64").toString()
+              );
+              if (payload.sub) {
+                token.sub = payload.sub;
+              } else {
+                console.error("[auth] JWT access_token missing 'sub' claim");
+              }
+            }
+          } catch (e) {
+            console.error("[auth] Failed to decode access_token:", e);
+          }
         }
         return token;
       }
