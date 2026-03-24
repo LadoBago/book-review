@@ -27,7 +27,8 @@ public static class ReviewMappingExtensions
             HasDraft = review.HasDraft,
             DraftTitle = review.DraftTitle,
             DraftBody = review.DraftBody,
-            DraftQuotes = review.DraftQuotes?.ToList()
+            DraftQuotes = review.DraftQuotes?.ToList(),
+            RejectionReason = review.RejectionReason
         };
     }
 
@@ -64,7 +65,8 @@ public static class ReviewMappingExtensions
             Status = review.Status.ToString(),
             AuthorName = review.AuthorName,
             CreatedAt = review.CreatedAt,
-            HasDraft = review.HasDraft
+            HasDraft = review.HasDraft,
+            RejectionReason = review.RejectionReason
         };
     }
 }

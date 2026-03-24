@@ -55,6 +55,9 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
         builder.Property(r => r.DraftQuotes)
             .HasColumnType("jsonb");
 
+        builder.Property(r => r.RejectionReason)
+            .HasMaxLength(500);
+
         builder.Ignore(r => r.HasDraft);
 
         builder.HasMany(r => r.Quotes)

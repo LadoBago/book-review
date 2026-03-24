@@ -1,5 +1,6 @@
 export const ReviewStatus = {
   Draft: "Draft",
+  PendingReview: "PendingReview",
   Published: "Published",
 } as const;
 
@@ -29,6 +30,7 @@ export interface ReviewDto extends ReviewPublicDto {
   draftTitle: string | null;
   draftBody: string | null;
   draftQuotes: string[] | null;
+  rejectionReason: string | null;
 }
 
 export interface ReviewSummaryDto {
@@ -40,6 +42,7 @@ export interface ReviewSummaryDto {
   authorName: string;
   createdAt: string;
   hasDraft: boolean;
+  rejectionReason: string | null;
 }
 
 export interface PagedResult<T> {

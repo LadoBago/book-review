@@ -14,15 +14,18 @@ namespace BookReview.Presentation.Controllers;
 public class ReviewsController : ControllerBase
 {
     private readonly IReviewService _reviewService;
+    private readonly IModerationService _moderationService;
     private readonly IValidator<CreateReviewRequest> _createValidator;
     private readonly IValidator<UpdateReviewRequest> _updateValidator;
 
     public ReviewsController(
         IReviewService reviewService,
+        IModerationService moderationService,
         IValidator<CreateReviewRequest> createValidator,
         IValidator<UpdateReviewRequest> updateValidator)
     {
         _reviewService = reviewService;
+        _moderationService = moderationService;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
     }
@@ -112,8 +115,17 @@ public class ReviewsController : ControllerBase
     public async Task<ActionResult<ReviewDto>> Publish(Guid id, CancellationToken cancellationToken = default)
     {
         var authorId = User.GetUserId();
-        var review = await _reviewService.PublishAsync(id, authorId, cancellationToken);
-        return Ok(review);
+
+        if (User.IsAdmin())
+        {
+            var review = await _moderationService.PublishDirectAsync(id, authorId, cancellationToken);
+            return Ok(review);
+        }
+        else
+        {
+            var review = await _reviewService.PublishAsync(id, authorId, cancellationToken);
+            return Ok(review);
+        }
     }
 
     [Authorize]

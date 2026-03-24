@@ -5,6 +5,7 @@ declare module "next-auth" {
   interface Session {
     accessToken?: string;
     error?: string;
+    isAdmin?: boolean;
   }
 }
 
@@ -14,6 +15,7 @@ declare module "@auth/core/jwt" {
     refreshToken?: string;
     expiresAt?: number;
     error?: string;
+    isAdmin?: boolean;
   }
 }
 
@@ -60,6 +62,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               } else {
                 console.error("[auth] JWT access_token missing 'sub' claim");
               }
+              const roles = payload.realm_access?.roles as string[] | undefined;
+              token.isAdmin = roles?.includes("admin") ?? false;
             }
           } catch (e) {
             console.error("[auth] Failed to decode access_token:", e);
@@ -109,6 +113,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async session({ session, token }) {
       session.accessToken = token.accessToken;
       session.error = token.error;
+      session.isAdmin = token.isAdmin ?? false;
       if (token.sub && session.user) {
         session.user.id = token.sub;
       }

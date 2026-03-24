@@ -68,6 +68,105 @@ public class ReviewTests
     }
 
     [Fact]
+    public void Publish_PendingReview_ThrowsDomainException()
+    {
+        var review = new Review("Title", "Body", "user-1", "John");
+        review.SubmitForReview();
+
+        Assert.Throws<DomainException>(() => review.Publish());
+    }
+
+    [Fact]
+    public void SubmitForReview_DraftReview_ChangesStatusToPendingReview()
+    {
+        var review = new Review("Title", "Body", "user-1", "John");
+
+        review.SubmitForReview();
+
+        Assert.Equal(ReviewStatus.PendingReview, review.Status);
+    }
+
+    [Fact]
+    public void SubmitForReview_AlreadyPublished_ThrowsDomainException()
+    {
+        var review = new Review("Title", "Body", "user-1", "John");
+        review.Publish();
+
+        Assert.Throws<DomainException>(() => review.SubmitForReview());
+    }
+
+    [Fact]
+    public void SubmitForReview_AlreadyPending_ThrowsDomainException()
+    {
+        var review = new Review("Title", "Body", "user-1", "John");
+        review.SubmitForReview();
+
+        Assert.Throws<DomainException>(() => review.SubmitForReview());
+    }
+
+    [Fact]
+    public void Approve_PendingReview_ChangesStatusToPublished()
+    {
+        var review = new Review("Title", "Body", "user-1", "John");
+        review.SubmitForReview();
+
+        review.Approve();
+
+        Assert.Equal(ReviewStatus.Published, review.Status);
+    }
+
+    [Fact]
+    public void Approve_DraftReview_ThrowsDomainException()
+    {
+        var review = new Review("Title", "Body", "user-1", "John");
+
+        Assert.Throws<DomainException>(() => review.Approve());
+    }
+
+    [Fact]
+    public void Reject_PendingReview_ChangesStatusToDraftWithReason()
+    {
+        var review = new Review("Title", "Body", "user-1", "John");
+        review.SubmitForReview();
+
+        review.Reject("Content needs improvement");
+
+        Assert.Equal(ReviewStatus.Draft, review.Status);
+        Assert.Equal("Content needs improvement", review.RejectionReason);
+    }
+
+    [Fact]
+    public void Reject_EmptyReason_ThrowsDomainException()
+    {
+        var review = new Review("Title", "Body", "user-1", "John");
+        review.SubmitForReview();
+
+        Assert.Throws<DomainException>(() => review.Reject(""));
+    }
+
+    [Fact]
+    public void Reject_ReasonTooLong_ThrowsDomainException()
+    {
+        var review = new Review("Title", "Body", "user-1", "John");
+        review.SubmitForReview();
+
+        Assert.Throws<DomainException>(() => review.Reject(new string('a', 501)));
+    }
+
+    [Fact]
+    public void SubmitForReview_AfterRejection_ClearsRejectionReason()
+    {
+        var review = new Review("Title", "Body", "user-1", "John");
+        review.SubmitForReview();
+        review.Reject("Needs work");
+
+        review.SubmitForReview();
+
+        Assert.Equal(ReviewStatus.PendingReview, review.Status);
+        Assert.Null(review.RejectionReason);
+    }
+
+    [Fact]
     public void Unpublish_PublishedReview_ChangesStatusToDraft()
     {
         var review = new Review("Title", "Body", "user-1", "John");

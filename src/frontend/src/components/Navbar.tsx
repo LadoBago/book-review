@@ -29,6 +29,14 @@ export default function Navbar() {
               >
                 My Reviews
               </Link>
+              {session.isAdmin && (
+                <Link
+                  href="/dashboard/moderation"
+                  className="text-sm text-orange-600 hover:text-orange-800"
+                >
+                  Moderation
+                </Link>
+              )}
               <div className="relative group">
                 <button className="text-sm text-gray-500 hover:text-gray-700">
                   {session.user?.name} ▾

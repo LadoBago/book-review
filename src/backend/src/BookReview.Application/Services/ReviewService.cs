@@ -82,7 +82,7 @@ public class ReviewService : IReviewService
         var review = new Review(request.Title, request.Body, authorId, authorName, request.Quotes);
 
         if (request.Status == nameof(ReviewStatus.Published))
-            review.Publish();
+            review.SubmitForReview();
 
         await _reviewRepository.AddAsync(review, cancellationToken);
 
@@ -107,23 +107,20 @@ public class ReviewService : IReviewService
         {
             if (targetStatus == nameof(ReviewStatus.Draft))
             {
-                // Save as draft revision — published version stays live
                 review.SaveDraftRevision(title, body, quotes?.ToList());
             }
             else
             {
-                // Publishing edits: save draft then immediately publish it
                 review.SaveDraftRevision(title, body, quotes?.ToList());
                 review.PublishDraftRevision();
             }
         }
         else
         {
-            // Review is still a draft — update directly
             review.UpdateContent(title, body, quotes);
 
             if (targetStatus == nameof(ReviewStatus.Published))
-                review.Publish();
+                review.SubmitForReview();
         }
 
         await _reviewRepository.UpdateAsync(review, cancellationToken);
@@ -157,7 +154,7 @@ public class ReviewService : IReviewService
         if (review.HasDraft)
             review.PublishDraftRevision();
         else
-            review.Publish();
+            review.SubmitForReview();
 
         await _reviewRepository.UpdateAsync(review, cancellationToken);
 

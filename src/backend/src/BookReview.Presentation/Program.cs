@@ -50,7 +50,12 @@ try
             };
         });
 
-    builder.Services.AddAuthorization();
+    builder.Services.AddAuthorization(options =>
+    {
+        options.AddPolicy("Admin", policy => policy.RequireAssertion(context =>
+            context.User.IsInRole("admin") ||
+            BookReview.Presentation.Extensions.ClaimsPrincipalExtensions.IsAdmin(context.User)));
+    });
 
     builder.Services.AddRateLimiter(options =>
     {

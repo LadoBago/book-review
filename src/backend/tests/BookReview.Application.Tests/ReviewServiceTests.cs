@@ -42,7 +42,7 @@ public class ReviewServiceTests
     }
 
     [Fact]
-    public async Task CreateAsync_WithPublishStatus_PublishesReview()
+    public async Task CreateAsync_WithPublishStatus_SubmitsForReview()
     {
         var request = new CreateReviewRequest
         {
@@ -53,7 +53,7 @@ public class ReviewServiceTests
 
         var result = await _service.CreateAsync(request, "user-1", "John");
 
-        Assert.Equal("Published", result.Status);
+        Assert.Equal("PendingReview", result.Status);
     }
 
     [Fact]
@@ -120,7 +120,7 @@ public class ReviewServiceTests
     }
 
     [Fact]
-    public async Task UpdateAsync_PublishDraft_ChangesStatus()
+    public async Task UpdateAsync_PublishDraft_SubmitsForReview()
     {
         var review = new Review("Title", "Body", "user-1", "John");
         _repository.GetByIdAsync(review.Id, Arg.Any<CancellationToken>())
@@ -130,7 +130,7 @@ public class ReviewServiceTests
 
         var result = await _service.UpdateAsync(review.Id, request, "user-1");
 
-        Assert.Equal("Published", result.Status);
+        Assert.Equal("PendingReview", result.Status);
     }
 
     [Fact]
@@ -192,7 +192,7 @@ public class ReviewServiceTests
     // --- PublishAsync tests ---
 
     [Fact]
-    public async Task PublishAsync_DraftReview_PublishesAndReturnsDto()
+    public async Task PublishAsync_DraftReview_SubmitsForReview()
     {
         var review = new Review("Title", "Body", "user-1", "John");
         _repository.GetByIdAsync(review.Id, Arg.Any<CancellationToken>())
@@ -200,7 +200,7 @@ public class ReviewServiceTests
 
         var result = await _service.PublishAsync(review.Id, "user-1");
 
-        Assert.Equal("Published", result.Status);
+        Assert.Equal("PendingReview", result.Status);
         await _repository.Received(1).UpdateAsync(review, Arg.Any<CancellationToken>());
     }
 

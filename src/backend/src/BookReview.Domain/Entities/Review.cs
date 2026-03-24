@@ -24,6 +24,8 @@ public class Review
     public IReadOnlyList<string>? DraftQuotes { get; private set; }
     public bool HasDraft => DraftTitle != null;
 
+    public string? RejectionReason { get; private set; }
+
     private Review() { }
 
     public Review(string title, string body, string authorId, string authorName, IEnumerable<string>? quotes = null)
@@ -142,7 +144,50 @@ public class Review
         if (Status == ReviewStatus.Published)
             throw new DomainException("Review is already published.");
 
+        if (Status == ReviewStatus.PendingReview)
+            throw new DomainException("Review is pending approval. Use Approve to publish.");
+
         Status = ReviewStatus.Published;
+        RejectionReason = null;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void SubmitForReview()
+    {
+        if (Status == ReviewStatus.Published)
+            throw new DomainException("Review is already published.");
+
+        if (Status == ReviewStatus.PendingReview)
+            throw new DomainException("Review is already pending approval.");
+
+        Status = ReviewStatus.PendingReview;
+        RejectionReason = null;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void Approve()
+    {
+        if (Status != ReviewStatus.PendingReview)
+            throw new DomainException("Only pending reviews can be approved.");
+
+        Status = ReviewStatus.Published;
+        RejectionReason = null;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void Reject(string reason)
+    {
+        if (Status != ReviewStatus.PendingReview)
+            throw new DomainException("Only pending reviews can be rejected.");
+
+        if (string.IsNullOrWhiteSpace(reason))
+            throw new DomainException("Rejection reason is required.");
+
+        if (reason.Length > 500)
+            throw new DomainException("Rejection reason cannot exceed 500 characters.");
+
+        Status = ReviewStatus.Draft;
+        RejectionReason = reason.Trim();
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
@@ -152,6 +197,7 @@ public class Review
             throw new DomainException("Review is already a draft.");
 
         Status = ReviewStatus.Draft;
+        RejectionReason = null;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 

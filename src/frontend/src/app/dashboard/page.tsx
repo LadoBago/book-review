@@ -59,7 +59,11 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
                   <tr key={review.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3">
                       <Link
-                        href={`/reviews/${review.slug}`}
+                        href={
+                          review.status === ReviewStatus.Published
+                            ? `/reviews/${review.slug}`
+                            : `/dashboard/reviews/${review.id}/edit`
+                        }
                         className="font-medium text-gray-900 hover:text-blue-600"
                       >
                         {review.title}
@@ -70,15 +74,24 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
                         className={`inline-block rounded-full px-2 py-1 text-xs font-medium ${
                           review.status === ReviewStatus.Published
                             ? "bg-green-100 text-green-700"
-                            : "bg-yellow-100 text-yellow-700"
+                            : review.status === ReviewStatus.PendingReview
+                              ? "bg-orange-100 text-orange-700"
+                              : "bg-yellow-100 text-yellow-700"
                         }`}
                       >
-                        {review.status}
+                        {review.status === ReviewStatus.PendingReview
+                          ? "Pending Approval"
+                          : review.status}
                       </span>
                       {review.hasDraft && (
                         <span className="ml-1 inline-block rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700">
                           Draft Pending
                         </span>
+                      )}
+                      {review.rejectionReason && (
+                        <p className="mt-1 text-xs text-red-600">
+                          Rejected: {review.rejectionReason}
+                        </p>
                       )}
                     </td>
                     <td className="px-4 py-3 text-gray-500">
@@ -99,10 +112,12 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
                               <PublishButton reviewId={review.id} hasDraft variant="link" />
                             )}
                           </>
+                        ) : review.status === ReviewStatus.PendingReview ? (
+                          <span className="text-xs text-orange-600">Awaiting approval</span>
                         ) : (
                           <PublishButton reviewId={review.id} variant="link" />
                         )}
-                        {review.status !== ReviewStatus.Published && (
+                        {review.status === ReviewStatus.Draft && (
                           <DeleteButton reviewId={review.id} />
                         )}
                       </div>

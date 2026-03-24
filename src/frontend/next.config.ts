@@ -24,6 +24,10 @@ const nextConfig: NextConfig = {
           destination: `${process.env.API_INTERNAL_URL || "http://localhost:5000"}/api/reviews/:path*`,
         },
         {
+          source: "/api/moderation/:path*",
+          destination: `${process.env.API_INTERNAL_URL || "http://localhost:5000"}/api/moderation/:path*`,
+        },
+        {
           source: "/api/images/:path*",
           destination: `${process.env.API_INTERNAL_URL || "http://localhost:5000"}/api/images/:path*`,
         },

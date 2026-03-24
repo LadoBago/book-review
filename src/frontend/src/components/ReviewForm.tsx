@@ -134,6 +134,12 @@ export default function ReviewForm({ review }: ReviewFormProps) {
         </div>
       )}
 
+      {review?.rejectionReason && (
+        <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <strong>Rejected:</strong> {review.rejectionReason}
+        </div>
+      )}
+
       {error && (
         <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
@@ -214,7 +220,7 @@ export default function ReviewForm({ review }: ReviewFormProps) {
           disabled={saving || !title.trim() || !body.trim()}
           className="rounded-md bg-gray-900 px-4 py-2 text-sm text-white hover:bg-gray-700 disabled:opacity-50"
         >
-          {saving ? "Publishing..." : "Publish"}
+          {saving ? "Submitting..." : "Submit for Review"}
         </button>
         {hasDraft && (
           <button

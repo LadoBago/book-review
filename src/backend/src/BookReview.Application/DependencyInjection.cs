@@ -10,6 +10,7 @@ public static class DependencyInjection
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         services.AddScoped<IReviewService, ReviewService>();
+        services.AddScoped<IModerationService, ModerationService>();
         services.AddValidatorsFromAssemblyContaining<IReviewService>();
 
         return services;

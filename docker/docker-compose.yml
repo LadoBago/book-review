@@ -34,11 +34,30 @@ services:
       - --import-realm
     volumes:
       - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
+      - ./keycloak/disable-ssl.sh:/opt/keycloak/disable-ssl.sh
     ports:
       - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080 && echo 'healthy'"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
     depends_on:
       postgres:
         condition: service_healthy
+
+  keycloak-init:
+    image: quay.io/keycloak/keycloak:26.0
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+    volumes:
+      - ./keycloak/disable-ssl.sh:/opt/keycloak/disable-ssl.sh
+    entrypoint: ["/bin/bash", "/opt/keycloak/disable-ssl.sh"]
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    restart: "no"
 
   azurite:
     image: mcr.microsoft.com/azure-storage/azurite

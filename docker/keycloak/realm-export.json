@@ -18,6 +18,12 @@
         "description": "Regular user role",
         "composite": false,
         "clientRole": false
+      },
+      {
+        "name": "admin",
+        "description": "Admin role for review moderation",
+        "composite": false,
+        "clientRole": false
       }
     ]
   },
@@ -33,6 +39,8 @@
       "redirectUris": ["http://localhost:3000/*"],
       "webOrigins": ["http://localhost:3000"],
       "protocol": "openid-connect",
+      "defaultClientScopes": ["web-origins", "acr", "profile", "roles", "basic", "email"],
+      "optionalClientScopes": ["address", "phone", "offline_access", "organization", "microprofile-jwt"],
       "attributes": {
         "pkce.code.challenge.method": "S256"
       },
@@ -59,7 +67,9 @@
       "bearerOnly": true,
       "standardFlowEnabled": false,
       "directAccessGrantsEnabled": false,
-      "protocol": "openid-connect"
+      "protocol": "openid-connect",
+      "defaultClientScopes": ["web-origins", "acr", "profile", "roles", "basic", "email"],
+      "optionalClientScopes": ["address", "phone", "offline_access", "organization", "microprofile-jwt"]
     }
   ],
   "identityProviders": [

@@ -145,6 +145,45 @@ export async function discardDraft(id: string): Promise<ReviewDto> {
   });
 }
 
+// Admin moderation endpoints
+export async function getPendingReviews(
+  page = 1,
+  pageSize = 10
+): Promise<PagedResult<ReviewSummaryDto>> {
+  const headers = await getAuthHeaders();
+  const params = new URLSearchParams({
+    page: page.toString(),
+    pageSize: pageSize.toString(),
+  });
+
+  return fetchApi(`/api/moderation/pending?${params}`, { headers });
+}
+
+export async function getModerationReviewById(id: string): Promise<ReviewDto> {
+  const headers = await getAuthHeaders();
+  return fetchApi(`/api/moderation/reviews/${id}`, { headers });
+}
+
+export async function approveReview(id: string): Promise<ReviewDto> {
+  const headers = await getAuthHeaders();
+  return fetchApi(`/api/moderation/reviews/${id}/approve`, {
+    method: "POST",
+    headers,
+  });
+}
+
+export async function rejectReview(
+  id: string,
+  reason: string
+): Promise<ReviewDto> {
+  const headers = await getAuthHeaders();
+  return fetchApi(`/api/moderation/reviews/${id}/reject`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ reason }),
+  });
+}
+
 export async function uploadCoverImage(
   id: string,
   file: File
