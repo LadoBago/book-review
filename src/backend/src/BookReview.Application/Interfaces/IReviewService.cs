@@ -12,6 +12,7 @@ public interface IReviewService
     Task<ReviewDto> UpdateAsync(Guid id, UpdateReviewRequest request, string authorId, CancellationToken cancellationToken = default);
     Task DeleteAsync(Guid id, string authorId, CancellationToken cancellationToken = default);
     Task<ReviewDto> UploadCoverImageAsync(Guid id, Stream imageStream, string fileName, string authorId, CancellationToken cancellationToken = default);
+    Task<ReviewDto> DeleteCoverImageAsync(Guid id, string authorId, CancellationToken cancellationToken = default);
     Task<ReviewDto> DiscardDraftAsync(Guid id, string authorId, CancellationToken cancellationToken = default);
     Task<ReviewDto> UnpublishAsync(Guid id, string authorId, CancellationToken cancellationToken = default);
     Task<ReviewDto> PublishAsync(Guid id, string authorId, CancellationToken cancellationToken = default);

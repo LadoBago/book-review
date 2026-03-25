@@ -166,4 +166,15 @@ public class ReviewsController : ControllerBase
         var review = await _reviewService.UploadCoverImageAsync(id, stream, file.FileName, authorId, cancellationToken);
         return Ok(review);
     }
+
+    [Authorize]
+    [HttpDelete("{id:guid}/cover")]
+    public async Task<ActionResult<ReviewDto>> DeleteCover(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        var authorId = User.GetUserId();
+        var review = await _reviewService.DeleteCoverImageAsync(id, authorId, cancellationToken);
+        return Ok(review);
+    }
 }

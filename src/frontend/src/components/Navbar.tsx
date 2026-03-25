@@ -1,10 +1,17 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
-import { useSession, signIn, signOut } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 
 export default function Navbar() {
   const { data: session, status } = useSession();
+
+  useEffect(() => {
+    if (session?.error === "RefreshTokenError") {
+      signIn("keycloak");
+    }
+  }, [session?.error]);
 
   return (
     <nav className="border-b border-gray-200 bg-white">
@@ -52,8 +59,7 @@ export default function Navbar() {
                     Change Password
                   </a>
                   <button
-                    onClick={async () => {
-                      await signOut({ redirect: false });
+                    onClick={() => {
                       window.location.href = "/api/auth/federated-logout";
                     }}
                     className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"

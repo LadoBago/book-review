@@ -2,6 +2,7 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using BookReview.Application.Interfaces;
 using BookReview.Domain.Exceptions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace BookReview.Infrastructure.Storage;
@@ -24,12 +25,16 @@ public class AzureBlobStorageService : IStorageService
     };
 
     private readonly BlobContainerClient _containerClient;
+    private readonly BlobServiceClient _blobServiceClient;
     private readonly ILogger<AzureBlobStorageService> _logger;
+    private readonly string? _externalBlobUrl;
 
-    public AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogger<AzureBlobStorageService> logger)
+    public AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogger<AzureBlobStorageService> logger, IConfiguration configuration)
     {
+        _blobServiceClient = blobServiceClient;
         _containerClient = blobServiceClient.GetBlobContainerClient(ContainerName);
         _logger = logger;
+        _externalBlobUrl = configuration["AzureStorage:ExternalUrl"];
     }
 
     public async Task<string> UploadImageAsync(Stream stream, string fileName, CancellationToken cancellationToken = default)
@@ -65,7 +70,14 @@ public class AzureBlobStorageService : IStorageService
 
         await blobClient.UploadAsync(stream, new BlobHttpHeaders { ContentType = contentType }, cancellationToken: cancellationToken);
 
-        return blobClient.Uri.ToString();
+        var url = blobClient.Uri.ToString();
+        if (!string.IsNullOrEmpty(_externalBlobUrl))
+        {
+            var internalBase = _blobServiceClient.Uri.ToString().TrimEnd('/');
+            url = url.Replace(internalBase, _externalBlobUrl.TrimEnd('/'));
+        }
+
+        return url;
     }
 
     public async Task DeleteImageAsync(string url, CancellationToken cancellationToken = default)

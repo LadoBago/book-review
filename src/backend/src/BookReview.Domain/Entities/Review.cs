@@ -139,6 +139,12 @@ public class Review
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
+    public void ClearCoverImageUrl()
+    {
+        CoverImageUrl = null;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
     public void Publish()
     {
         if (Status == ReviewStatus.Published)

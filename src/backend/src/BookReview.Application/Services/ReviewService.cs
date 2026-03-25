@@ -207,4 +207,23 @@ public class ReviewService : IReviewService
 
         return review.ToDto();
     }
+
+    public async Task<ReviewDto> DeleteCoverImageAsync(
+        Guid id, string authorId, CancellationToken cancellationToken = default)
+    {
+        var review = await _reviewRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new NotFoundException("Review not found.");
+
+        if (review.AuthorId != authorId)
+            throw new ForbiddenException("You can only modify your own reviews.");
+
+        if (review.CoverImageUrl != null)
+        {
+            await _storageService.DeleteImageAsync(review.CoverImageUrl, cancellationToken);
+            review.ClearCoverImageUrl();
+            await _reviewRepository.UpdateAsync(review, cancellationToken);
+        }
+
+        return review.ToDto();
+    }
 }

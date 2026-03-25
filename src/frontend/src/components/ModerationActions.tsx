@@ -20,7 +20,7 @@ export default function ModerationActions({ reviewId }: ModerationActionsProps) 
     setLoading(true);
     try {
       await approveReview(reviewId);
-      router.refresh();
+      router.push("/dashboard/moderation");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to approve");
     } finally {
@@ -37,7 +37,7 @@ export default function ModerationActions({ reviewId }: ModerationActionsProps) 
     setLoading(true);
     try {
       await rejectReview(reviewId, reason.trim());
-      router.refresh();
+      router.push("/dashboard/moderation");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to reject");
     } finally {

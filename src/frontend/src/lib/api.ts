@@ -17,6 +17,10 @@ async function fetchApi<T>(path: string, options?: RequestInit & { skipContentTy
   });
 
   if (!res.ok) {
+    if (res.status === 401 && typeof window !== "undefined") {
+      window.location.href = "/api/auth/signin?callbackUrl=" + encodeURIComponent(window.location.pathname);
+      throw new Error("Session expired. Redirecting to login...");
+    }
     const error = await res.json().catch(() => ({}));
     throw new Error(error.detail || `API error: ${res.status}`);
   }
@@ -197,5 +201,13 @@ export async function uploadCoverImage(
     headers,
     body: formData,
     skipContentType: true,
+  });
+}
+
+export async function deleteCoverImage(id: string): Promise<ReviewDto> {
+  const headers = await getAuthHeaders();
+  return fetchApi(`/api/reviews/${id}/cover`, {
+    method: "DELETE",
+    headers,
   });
 }

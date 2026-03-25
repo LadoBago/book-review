@@ -7,13 +7,17 @@ const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
 interface CoverImageUploadProps {
   currentUrl: string | null;
   onUpload: (file: File) => void;
+  onRemove?: () => void;
   uploading?: boolean;
+  removing?: boolean;
 }
 
 export default function CoverImageUpload({
   currentUrl,
   onUpload,
+  onRemove,
   uploading = false,
+  removing = false,
 }: CoverImageUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [sizeError, setSizeError] = useState<string | null>(null);
@@ -55,11 +59,21 @@ export default function CoverImageUpload({
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          disabled={uploading}
+          disabled={uploading || removing}
           className="rounded-md border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50 disabled:opacity-50"
         >
           {uploading ? "Uploading..." : currentUrl ? "Change Image" : "Upload Image"}
         </button>
+        {currentUrl && onRemove && (
+          <button
+            type="button"
+            onClick={onRemove}
+            disabled={uploading || removing}
+            className="rounded-md border border-red-300 px-3 py-2 text-sm text-red-600 hover:bg-red-50 disabled:opacity-50"
+          >
+            {removing ? "Removing..." : "Remove Image"}
+          </button>
+        )}
         <span className="text-xs text-gray-500">JPEG, PNG, or WebP (max 5MB)</span>
       </div>
       {sizeError && (

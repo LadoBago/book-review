@@ -2,7 +2,7 @@
 
 import { useReducer } from "react";
 import { useRouter } from "next/navigation";
-import { createReview, updateReview, uploadCoverImage, discardDraft } from "@/lib/api";
+import { createReview, updateReview, uploadCoverImage, deleteCoverImage, discardDraft } from "@/lib/api";
 import { ReviewDto, ReviewStatus } from "@/types/review";
 import MarkdownEditor from "./MarkdownEditor";
 import MarkdownPreview from "./MarkdownPreview";
@@ -21,6 +21,7 @@ interface FormState {
   showPreview: boolean;
   saving: boolean;
   uploading: boolean;
+  removing: boolean;
   discarding: boolean;
   error: string | null;
 }
@@ -30,7 +31,7 @@ type FormAction =
   | { type: "SET_QUOTES"; quotes: string[] }
   | { type: "SET_COVER_URL"; url: string | null }
   | { type: "TOGGLE_PREVIEW"; show: boolean }
-  | { type: "SET_LOADING"; operation: "saving" | "uploading" | "discarding"; loading: boolean }
+  | { type: "SET_LOADING"; operation: "saving" | "uploading" | "removing" | "discarding"; loading: boolean }
   | { type: "SET_ERROR"; error: string | null };
 
 function formReducer(state: FormState, action: FormAction): FormState {
@@ -62,6 +63,7 @@ function initFormState(review?: ReviewDto): FormState {
     showPreview: false,
     saving: false,
     uploading: false,
+    removing: false,
     discarding: false,
     error: null,
   };
@@ -74,7 +76,7 @@ export default function ReviewForm({ review }: ReviewFormProps) {
   const hasDraft = review?.hasDraft ?? false;
 
   const [state, dispatch] = useReducer(formReducer, review, initFormState);
-  const { title, body, quotes, coverImageUrl, showPreview, saving, uploading, discarding, error } = state;
+  const { title, body, quotes, coverImageUrl, showPreview, saving, uploading, removing, discarding, error } = state;
 
   async function handleSave(status: ReviewStatus) {
     dispatch({ type: "SET_LOADING", operation: "saving", loading: true });
@@ -124,6 +126,19 @@ export default function ReviewForm({ review }: ReviewFormProps) {
     }
   }
 
+  async function handleImageRemove() {
+    if (!isEditing) return;
+    dispatch({ type: "SET_LOADING", operation: "removing", loading: true });
+    try {
+      await deleteCoverImage(review.id);
+      dispatch({ type: "SET_COVER_URL", url: null });
+    } catch (err) {
+      dispatch({ type: "SET_ERROR", error: err instanceof Error ? err.message : "Failed to remove image" });
+    } finally {
+      dispatch({ type: "SET_LOADING", operation: "removing", loading: false });
+    }
+  }
+
   return (
     <div className="space-y-6">
       {isPublished && (
@@ -163,7 +178,9 @@ export default function ReviewForm({ review }: ReviewFormProps) {
       <CoverImageUpload
         currentUrl={coverImageUrl}
         onUpload={handleImageUpload}
+        onRemove={isEditing ? handleImageRemove : undefined}
         uploading={uploading}
+        removing={removing}
       />
 
       <div className="flex gap-2 border-b border-gray-200">

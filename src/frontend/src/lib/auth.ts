@@ -4,6 +4,7 @@ import type { OIDCConfig } from "next-auth/providers";
 declare module "next-auth" {
   interface Session {
     accessToken?: string;
+    idToken?: string;
     error?: string;
     isAdmin?: boolean;
   }
@@ -13,6 +14,7 @@ declare module "@auth/core/jwt" {
   interface JWT {
     accessToken?: string;
     refreshToken?: string;
+    idToken?: string;
     expiresAt?: number;
     error?: string;
     isAdmin?: boolean;
@@ -48,6 +50,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (account) {
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token;
+        token.idToken = account.id_token;
         token.expiresAt = account.expires_at;
         // Extract sub from access token to match backend's authorId
         if (account.access_token) {
@@ -112,6 +115,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     async session({ session, token }) {
       session.accessToken = token.accessToken;
+      session.idToken = token.idToken;
       session.error = token.error;
       session.isAdmin = token.isAdmin ?? false;
       if (token.sub && session.user) {
