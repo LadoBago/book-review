@@ -1,4 +1,7 @@
-import Link from "next/link";
+"use client";
+
+import { useLocale } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { ReviewSummaryDto } from "@/types/review";
 
 interface ReviewCardProps {
@@ -6,7 +9,8 @@ interface ReviewCardProps {
 }
 
 export default function ReviewCard({ review }: ReviewCardProps) {
-  const date = new Date(review.createdAt).toLocaleDateString("en-US", {
+  const locale = useLocale();
+  const date = new Date(review.createdAt).toLocaleDateString(locale, {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -36,7 +40,7 @@ export default function ReviewCard({ review }: ReviewCardProps) {
         </h2>
         <div className="mt-2 flex items-center justify-between text-sm text-gray-500">
           <span>{review.authorName}</span>
-          <span>{date}</span>
+          <span suppressHydrationWarning>{date}</span>
         </div>
       </div>
     </Link>

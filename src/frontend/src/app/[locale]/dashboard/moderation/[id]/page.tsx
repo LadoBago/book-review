@@ -1,22 +1,26 @@
 import { notFound, redirect } from "next/navigation";
-import Link from "next/link";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { auth } from "@/lib/auth";
 import { getModerationReviewById } from "@/lib/api";
 import MarkdownPreview from "@/components/MarkdownPreview";
 import ModerationActions from "@/components/ModerationActions";
+import { Link } from "@/i18n/navigation";
 
 interface ModerationDetailProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; locale: string }>;
 }
 
 export default async function ModerationDetailPage({ params }: ModerationDetailProps) {
+  const { id, locale } = await params;
+  setRequestLocale(locale);
   const session = await auth();
 
   if (!session?.isAdmin) {
-    redirect("/dashboard");
+    redirect(`/${locale}/dashboard`);
   }
 
-  const { id } = await params;
+  const t = await getTranslations("moderation");
+  const tReview = await getTranslations("review");
 
   let review;
   try {
@@ -25,7 +29,7 @@ export default async function ModerationDetailPage({ params }: ModerationDetailP
     notFound();
   }
 
-  const date = new Date(review.createdAt).toLocaleDateString("en-US", {
+  const date = new Date(review.createdAt).toLocaleDateString(locale, {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -38,7 +42,7 @@ export default async function ModerationDetailPage({ params }: ModerationDetailP
           href="/dashboard/moderation"
           className="text-sm text-gray-600 hover:text-gray-900"
         >
-          &larr; Back to Moderation Queue
+          {t("backToQueue")}
         </Link>
         <ModerationActions reviewId={review.id} />
       </div>
@@ -57,7 +61,7 @@ export default async function ModerationDetailPage({ params }: ModerationDetailP
         <header className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900">{review.title}</h1>
           <div className="mt-4 flex items-center gap-4 text-sm text-gray-500">
-            <span>By {review.authorName}</span>
+            <span>{tReview("by", { author: review.authorName })}</span>
             <span>{date}</span>
           </div>
         </header>
@@ -69,7 +73,7 @@ export default async function ModerationDetailPage({ params }: ModerationDetailP
         {review.quotes.length > 0 && (
           <section className="border-t border-gray-200 pt-8">
             <h2 className="mb-4 text-2xl font-semibold text-gray-900">
-              Favorite Quotes
+              {tReview("favoriteQuotes")}
             </h2>
             <div className="space-y-4">
               {review.quotes.map((quote) => (

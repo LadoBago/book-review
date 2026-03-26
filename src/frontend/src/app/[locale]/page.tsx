@@ -1,17 +1,23 @@
 import { Suspense } from "react";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getPublishedReviews } from "@/lib/api";
 import ReviewCard from "@/components/ReviewCard";
 import SearchBar from "@/components/SearchBar";
 import Pagination from "@/components/Pagination";
 
 interface HomeProps {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{ page?: string; search?: string }>;
 }
 
-export default async function Home({ searchParams }: HomeProps) {
-  const params = await searchParams;
-  const page = Number(params.page) || 1;
-  const search = params.search || undefined;
+export default async function Home({ params, searchParams }: HomeProps) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("home");
+
+  const sp = await searchParams;
+  const page = Number(sp.page) || 1;
+  const search = sp.search || undefined;
 
   let reviews;
   try {
@@ -23,7 +29,7 @@ export default async function Home({ searchParams }: HomeProps) {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <div className="mb-8">
-        <h1 className="mb-4 text-3xl font-bold">Discover Book Reviews</h1>
+        <h1 className="mb-4 text-3xl font-bold">{t("title")}</h1>
         <Suspense fallback={null}>
           <SearchBar />
         </Suspense>
@@ -32,8 +38,8 @@ export default async function Home({ searchParams }: HomeProps) {
       {!reviews || reviews.items.length === 0 ? (
         <div className="py-12 text-center text-gray-500">
           {search
-            ? `No reviews found for "${search}"`
-            : "No reviews yet. Be the first to write one!"}
+            ? t("noResultsSearch", { search })
+            : t("noResults")}
         </div>
       ) : (
         <>

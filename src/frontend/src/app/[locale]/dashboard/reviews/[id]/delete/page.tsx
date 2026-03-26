@@ -1,13 +1,17 @@
 "use client";
 
-import { useRouter, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { deleteReview } from "@/lib/api";
+import { useRouter } from "@/i18n/navigation";
 
 export default function DeleteReviewPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
+  const t = useTranslations("common");
+  const tErrors = useTranslations("errors");
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,18 +23,15 @@ export default function DeleteReviewPage() {
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete review");
+      setError(err instanceof Error ? err.message : tErrors("failedToDelete"));
       setDeleting(false);
     }
   }
 
   return (
     <div className="mx-auto max-w-md px-4 py-16 text-center">
-      <h1 className="text-2xl font-bold text-gray-900">Delete Review</h1>
-      <p className="mt-2 text-gray-500">
-        Are you sure you want to delete this review? This action cannot be
-        undone.
-      </p>
+      <h1 className="text-2xl font-bold text-gray-900">{t("deleteTitle")}</h1>
+      <p className="mt-2 text-gray-500">{t("deleteMessage")}</p>
 
       {error && (
         <div className="mt-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -43,14 +44,14 @@ export default function DeleteReviewPage() {
           onClick={() => router.back()}
           className="rounded-md border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50"
         >
-          Cancel
+          {t("cancel")}
         </button>
         <button
           onClick={handleDelete}
           disabled={deleting}
           className="rounded-md bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 disabled:opacity-50"
         >
-          {deleting ? "Deleting..." : "Delete"}
+          {deleting ? t("deleting") : t("delete")}
         </button>
       </div>
     </div>

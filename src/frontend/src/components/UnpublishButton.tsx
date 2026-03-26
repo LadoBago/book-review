@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { unpublishReview } from "@/lib/api";
 import ConfirmModal from "./ConfirmModal";
+import { useRouter } from "@/i18n/navigation";
 
 interface UnpublishButtonProps {
   reviewId: string;
@@ -12,9 +13,10 @@ interface UnpublishButtonProps {
 
 export default function UnpublishButton({ reviewId, variant = "button" }: UnpublishButtonProps) {
   const router = useRouter();
+  const t = useTranslations("unpublish");
+  const tErrors = useTranslations("errors");
   const [loading, setLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-
   const [error, setError] = useState<string | null>(null);
 
   async function handleUnpublish() {
@@ -26,7 +28,7 @@ export default function UnpublishButton({ reviewId, variant = "button" }: Unpubl
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to unpublish review");
+      setError(err instanceof Error ? err.message : tErrors("failedToUnpublish"));
     } finally {
       setLoading(false);
     }
@@ -40,7 +42,7 @@ export default function UnpublishButton({ reviewId, variant = "button" }: Unpubl
           disabled={loading}
           className="text-yellow-600 hover:text-yellow-800 disabled:opacity-50"
         >
-          {loading ? "..." : "Unpublish"}
+          {loading ? "..." : t("unpublish")}
         </button>
       ) : (
         <button
@@ -48,15 +50,15 @@ export default function UnpublishButton({ reviewId, variant = "button" }: Unpubl
           disabled={loading}
           className="shrink-0 rounded-md border border-yellow-300 px-4 py-2 text-sm text-yellow-700 hover:bg-yellow-50 disabled:opacity-50"
         >
-          {loading ? "Unpublishing..." : "Unpublish"}
+          {loading ? t("unpublishing") : t("unpublish")}
         </button>
       )}
       {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
       <ConfirmModal
         open={showConfirm}
-        title="Unpublish Review"
-        message="This review will no longer be visible to the public. You can republish it anytime from your dashboard."
-        confirmLabel="Unpublish"
+        title={t("modalTitle")}
+        message={t("modalMessage")}
+        confirmLabel={t("confirm")}
         confirmClassName="bg-yellow-600 text-white hover:bg-yellow-700"
         onConfirm={handleUnpublish}
         onCancel={() => setShowConfirm(false)}

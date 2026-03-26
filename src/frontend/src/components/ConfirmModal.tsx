@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 interface ConfirmModalProps {
   open: boolean;
   title: string;
@@ -14,11 +16,13 @@ export default function ConfirmModal({
   open,
   title,
   message,
-  confirmLabel = "Confirm",
+  confirmLabel,
   confirmClassName = "bg-gray-900 text-white hover:bg-gray-700",
   onConfirm,
   onCancel,
 }: ConfirmModalProps) {
+  const t = useTranslations("common");
+
   if (!open) return null;
 
   return (
@@ -32,13 +36,13 @@ export default function ConfirmModal({
             onClick={onCancel}
             className="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
           >
-            Cancel
+            {t("cancel")}
           </button>
           <button
             onClick={onConfirm}
             className={`rounded-md px-4 py-2 text-sm ${confirmClassName}`}
           >
-            {confirmLabel}
+            {confirmLabel || t("confirm")}
           </button>
         </div>
       </div>

@@ -46,7 +46,12 @@ public class AzureBlobStorageService : IStorageService
         if (stream.Length > MaxFileSizeBytes)
             throw new DomainException($"File size exceeds the maximum allowed size of 5MB.");
 
-        await _containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob, cancellationToken: cancellationToken);
+        var response = await _containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob, cancellationToken: cancellationToken);
+        if (response is null)
+        {
+            // Container already existed — ensure public access is set
+            await _containerClient.SetAccessPolicyAsync(PublicAccessType.Blob, cancellationToken: cancellationToken);
+        }
 
         var blobName = $"{Guid.NewGuid():N}{extension}";
         if (fileName.Contains('/'))

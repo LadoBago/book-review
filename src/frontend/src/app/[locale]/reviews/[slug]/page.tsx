@@ -1,19 +1,21 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getReviewBySlug } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import MarkdownPreview from "@/components/MarkdownPreview";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import UnpublishButton from "@/components/UnpublishButton";
 
 interface ReviewPageProps {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ slug: string; locale: string }>;
 }
 
 export async function generateMetadata({
   params,
 }: ReviewPageProps): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug, locale } = await params;
+  const t = await getTranslations({ locale, namespace: "meta" });
   try {
     const review = await getReviewBySlug(slug);
     const description = review.body.slice(0, 160).replace(/[#*_`]/g, "");
@@ -29,12 +31,15 @@ export async function generateMetadata({
       },
     };
   } catch {
-    return { title: "Review Not Found" };
+    return { title: t("reviewNotFound") };
   }
 }
 
 export default async function ReviewPage({ params }: ReviewPageProps) {
-  const { slug } = await params;
+  const { slug, locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("review");
+
   let review;
   try {
     review = await getReviewBySlug(slug);
@@ -45,7 +50,7 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
   const session = await auth();
   const isAuthor = session?.user?.id === review.authorId;
 
-  const date = new Date(review.createdAt).toLocaleDateString("en-US", {
+  const date = new Date(review.createdAt).toLocaleDateString(locale, {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -72,14 +77,14 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
                 href={`/dashboard/reviews/${review.id}/edit`}
                 className="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
               >
-                Edit
+                {t("edit")}
               </Link>
               <UnpublishButton reviewId={review.id} />
             </div>
           )}
         </div>
         <div className="mt-4 flex items-center gap-4 text-sm text-gray-500">
-          <span>By {review.authorName}</span>
+          <span>{t("by", { author: review.authorName })}</span>
           <span>{date}</span>
         </div>
       </header>
@@ -91,7 +96,7 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
       {review.quotes.length > 0 && (
         <section className="border-t border-gray-200 pt-8">
           <h2 className="mb-4 text-2xl font-semibold text-gray-900">
-            Favorite Quotes
+            {t("favoriteQuotes")}
           </h2>
           <div className="space-y-4">
             {review.quotes.map((quote) => (

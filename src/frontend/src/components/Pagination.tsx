@@ -1,4 +1,7 @@
-import Link from "next/link";
+"use client";
+
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 
 interface PaginationProps {
   currentPage: number;
@@ -13,6 +16,8 @@ export default function Pagination({
   basePath = "/",
   searchParams = {},
 }: PaginationProps) {
+  const t = useTranslations("pagination");
+
   if (totalPages <= 1) return null;
 
   function buildHref(page: number) {
@@ -39,7 +44,7 @@ export default function Pagination({
           href={buildHref(currentPage - 1)}
           className="rounded-md border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50"
         >
-          Previous
+          {t("previous")}
         </Link>
       )}
       {pages.map((page, i) => {
@@ -66,7 +71,7 @@ export default function Pagination({
           href={buildHref(currentPage + 1)}
           className="rounded-md border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50"
         >
-          Next
+          {t("next")}
         </Link>
       )}
     </nav>

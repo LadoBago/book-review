@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { approveReview, rejectReview } from "@/lib/api";
+import { useRouter } from "@/i18n/navigation";
 
 interface ModerationActionsProps {
   reviewId: string;
@@ -10,6 +11,8 @@ interface ModerationActionsProps {
 
 export default function ModerationActions({ reviewId }: ModerationActionsProps) {
   const router = useRouter();
+  const t = useTranslations("moderation");
+  const tErrors = useTranslations("errors");
   const [loading, setLoading] = useState(false);
   const [showReject, setShowReject] = useState(false);
   const [reason, setReason] = useState("");
@@ -22,7 +25,7 @@ export default function ModerationActions({ reviewId }: ModerationActionsProps) 
       await approveReview(reviewId);
       router.push("/dashboard/moderation");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to approve");
+      setError(err instanceof Error ? err.message : tErrors("failedToApprove"));
     } finally {
       setLoading(false);
     }
@@ -30,7 +33,7 @@ export default function ModerationActions({ reviewId }: ModerationActionsProps) 
 
   async function handleReject() {
     if (!reason.trim()) {
-      setError("Rejection reason is required.");
+      setError(t("rejectRequired"));
       return;
     }
     setError(null);
@@ -39,7 +42,7 @@ export default function ModerationActions({ reviewId }: ModerationActionsProps) 
       await rejectReview(reviewId, reason.trim());
       router.push("/dashboard/moderation");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to reject");
+      setError(err instanceof Error ? err.message : tErrors("failedToReject"));
     } finally {
       setLoading(false);
     }
@@ -53,14 +56,14 @@ export default function ModerationActions({ reviewId }: ModerationActionsProps) 
           disabled={loading}
           className="rounded-md bg-green-600 px-3 py-1.5 text-sm text-white hover:bg-green-700 disabled:opacity-50"
         >
-          {loading ? "..." : "Approve"}
+          {loading ? "..." : t("approve")}
         </button>
         <button
           onClick={() => setShowReject(!showReject)}
           disabled={loading}
           className="rounded-md bg-red-600 px-3 py-1.5 text-sm text-white hover:bg-red-700 disabled:opacity-50"
         >
-          Reject
+          {t("reject")}
         </button>
       </div>
       {showReject && (
@@ -68,7 +71,7 @@ export default function ModerationActions({ reviewId }: ModerationActionsProps) 
           <textarea
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="Reason for rejection (required)"
+            placeholder={t("rejectPlaceholder")}
             maxLength={500}
             rows={3}
             className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
@@ -80,7 +83,7 @@ export default function ModerationActions({ reviewId }: ModerationActionsProps) 
               disabled={loading || !reason.trim()}
               className="rounded-md bg-red-600 px-3 py-1.5 text-sm text-white hover:bg-red-700 disabled:opacity-50"
             >
-              {loading ? "Rejecting..." : "Confirm Reject"}
+              {loading ? t("rejecting") : t("confirmReject")}
             </button>
           </div>
         </div>
