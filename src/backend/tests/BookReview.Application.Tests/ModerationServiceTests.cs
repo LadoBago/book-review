@@ -102,10 +102,10 @@ public class ModerationServiceTests
         reviews[0].SubmitForReview();
         reviews[1].SubmitForReview();
 
-        _repository.GetPendingModerationAsync(1, 10, Arg.Any<CancellationToken>())
+        _repository.GetPendingModerationAsync(1, 10, "admin-user-id", Arg.Any<CancellationToken>())
             .Returns((reviews.AsReadOnly() as IReadOnlyList<Review>, 2));
 
-        var result = await _service.GetPendingAsync(1, 10);
+        var result = await _service.GetPendingAsync(1, 10, "admin-user-id");
 
         Assert.Equal(2, result.Items.Count);
         Assert.Equal(2, result.TotalCount);

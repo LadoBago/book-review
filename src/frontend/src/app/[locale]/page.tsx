@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getPublishedReviews } from "@/lib/api";
 import ReviewCard from "@/components/ReviewCard";
@@ -8,6 +9,25 @@ import Pagination from "@/components/Pagination";
 interface HomeProps {
   params: Promise<{ locale: string }>;
   searchParams: Promise<{ page?: string; search?: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "home" });
+  const tMeta = await getTranslations({ locale, namespace: "meta" });
+
+  return {
+    title: t("title"),
+    description: tMeta("siteDescription"),
+    alternates: {
+      canonical: `https://bookreview.ge/${locale}`,
+      languages: { en: "/en", ka: "/ka" },
+    },
+  };
 }
 
 export default async function Home({ params, searchParams }: HomeProps) {

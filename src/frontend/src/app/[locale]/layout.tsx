@@ -34,6 +34,15 @@ export async function generateMetadata({
     icons: {
       icon: "/favicon.svg",
     },
+    metadataBase: new URL("https://bookreview.ge"),
+    openGraph: {
+      type: "website",
+      siteName: t("siteTitle"),
+      locale: locale === "ka" ? "ka_GE" : "en_US",
+    },
+    twitter: {
+      card: "summary_large_image",
+    },
   };
 }
 

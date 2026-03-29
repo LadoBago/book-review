@@ -19,14 +19,32 @@ export async function generateMetadata({
   try {
     const review = await getReviewBySlug(slug);
     const description = review.body.slice(0, 160).replace(/[#*_`]/g, "");
+    const url = `https://bookreview.ge/${locale}/reviews/${slug}`;
     return {
       title: review.title,
       description,
+      alternates: {
+        canonical: url,
+        languages: { en: `/en/reviews/${slug}`, ka: `/ka/reviews/${slug}` },
+      },
       openGraph: {
+        type: "article",
+        title: review.title,
+        description,
+        url,
+        publishedTime: review.createdAt,
+        modifiedTime: review.updatedAt,
+        authors: [review.authorName],
+        ...(review.coverImageUrl && {
+          images: [{ url: review.coverImageUrl, alt: review.title }],
+        }),
+      },
+      twitter: {
+        card: review.coverImageUrl ? "summary_large_image" : "summary",
         title: review.title,
         description,
         ...(review.coverImageUrl && {
-          images: [{ url: review.coverImageUrl }],
+          images: [review.coverImageUrl],
         }),
       },
     };
@@ -49,6 +67,7 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
 
   const session = await auth();
   const isAuthor = session?.user?.id === review.authorId;
+  const isAdmin = session?.isAdmin ?? false;
 
   const date = new Date(review.createdAt).toLocaleDateString(locale, {
     year: "numeric",
@@ -56,36 +75,57 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
     day: "numeric",
   });
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: review.title,
+    datePublished: review.createdAt,
+    dateModified: review.updatedAt,
+    author: { "@type": "Person", name: review.authorName },
+    ...(review.coverImageUrl && { image: review.coverImageUrl }),
+    url: `https://bookreview.ge/${locale}/reviews/${review.slug}`,
+  };
+
   return (
     <article className="mx-auto max-w-3xl px-4 py-8">
-      {review.coverImageUrl && (
-        <div className="mb-8 overflow-hidden rounded-lg">
-          <img
-            src={review.coverImageUrl}
-            alt={review.title}
-            className="h-auto w-full max-h-96 object-cover"
-          />
-        </div>
-      )}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
 
       <header className="mb-8">
-        <div className="flex items-start justify-between gap-4">
-          <h1 className="text-4xl font-bold text-gray-900">{review.title}</h1>
-          {isAuthor && (
-            <div className="flex shrink-0 gap-2">
-              <Link
-                href={`/dashboard/reviews/${review.id}/edit`}
-                className="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-              >
-                {t("edit")}
-              </Link>
-              <UnpublishButton reviewId={review.id} />
+        <div className="flex flex-col gap-6 sm:flex-row">
+          {review.coverImageUrl && (
+            <div className="shrink-0 overflow-hidden rounded-lg sm:w-48">
+              <img
+                src={review.coverImageUrl}
+                alt={review.title}
+                className="h-auto w-full object-cover sm:h-64 sm:w-48"
+              />
             </div>
           )}
-        </div>
-        <div className="mt-4 flex items-center gap-4 text-sm text-gray-500">
-          <span>{t("by", { author: review.authorName })}</span>
-          <span>{date}</span>
+          <div className="flex-1">
+            <div className="flex items-start justify-between gap-4">
+              <h1 className="text-3xl font-bold text-gray-900">{review.title}</h1>
+              {(isAuthor || isAdmin) && (
+                <div className="flex shrink-0 gap-2">
+                  {isAuthor && (
+                    <Link
+                      href={`/dashboard/reviews/${review.id}/edit`}
+                      className="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    >
+                      {t("edit")}
+                    </Link>
+                  )}
+                  <UnpublishButton reviewId={review.id} />
+                </div>
+              )}
+            </div>
+            <div className="mt-3 flex items-center gap-4 text-sm text-gray-500">
+              <span>{t("by", { author: review.authorName })}</span>
+              <span>{date}</span>
+            </div>
+          </div>
         </div>
       </header>
 

@@ -64,13 +64,18 @@ public class ReviewRepository : IReviewRepository
     public async Task<(IReadOnlyList<Review> Items, int TotalCount)> GetPendingModerationAsync(
         int page,
         int pageSize,
+        string? excludeAuthorId = null,
         CancellationToken cancellationToken = default)
     {
         // Reviews pending moderation: PendingReview status OR Published with a draft (not already rejected)
+        // Exclude admin's own published drafts — they publish directly from the editor
         var query = _context.Reviews
             .Include(r => r.Quotes.OrderBy(q => q.SortOrder))
             .Where(r => r.Status == ReviewStatus.PendingReview
                 || (r.Status == ReviewStatus.Published && r.DraftTitle != null && r.RejectionReason == null));
+
+        if (!string.IsNullOrEmpty(excludeAuthorId))
+            query = query.Where(r => !(r.Status == ReviewStatus.Published && r.AuthorId == excludeAuthorId));
 
         var totalCount = await query.CountAsync(cancellationToken);
 

@@ -1,5 +1,6 @@
 using BookReview.Application.DTOs;
 using BookReview.Application.Interfaces;
+using BookReview.Presentation.Extensions;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -32,7 +33,8 @@ public class ModerationController : ControllerBase
     {
         page = Math.Max(1, page);
         pageSize = Math.Clamp(pageSize, 1, 100);
-        var result = await _moderationService.GetPendingAsync(page, pageSize, cancellationToken);
+        var adminId = User.GetUserId();
+        var result = await _moderationService.GetPendingAsync(page, pageSize, adminId, cancellationToken);
         return Ok(result);
     }
 
