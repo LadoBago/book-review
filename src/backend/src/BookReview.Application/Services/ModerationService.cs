@@ -27,14 +27,15 @@ public class ModerationService : IModerationService
     }
 
     public async Task<PagedResult<ReviewSummaryDto>> GetPendingAsync(
-        int page, int pageSize, CancellationToken cancellationToken = default)
+        int page, int pageSize, string adminAuthorId, CancellationToken cancellationToken = default)
     {
         page = Math.Max(1, page);
         pageSize = Math.Clamp(pageSize, 1, 100);
 
         // Includes both PendingReview reviews and Published reviews with pending drafts
+        // Excludes admin's own published drafts (they publish directly from editor)
         var (items, totalCount) = await _reviewRepository.GetPendingModerationAsync(
-            page, pageSize, cancellationToken);
+            page, pageSize, adminAuthorId, cancellationToken);
 
         return new PagedResult<ReviewSummaryDto>
         {
@@ -146,4 +147,5 @@ public class ModerationService : IModerationService
 
         return review.ToDto();
     }
+
 }

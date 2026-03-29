@@ -134,6 +134,49 @@
     "previous": "Previous",
     "next": "Next"
   },
+  "privacy": {
+    "title": "Privacy Policy",
+    "lastUpdated": "Last updated: March 29, 2026",
+    "sections": {
+      "overview": {
+        "title": "Overview",
+        "body": "Book Review (bookreview.ge) is a platform for creating and sharing book reviews. We are committed to protecting your privacy. This policy explains what data we collect, how we use it, and your rights."
+      },
+      "dataCollected": {
+        "title": "Data We Collect",
+        "intro": "We collect the following information:",
+        "items": {
+          "account": "Account information: name and email address provided during registration or through social login (Google, Facebook).",
+          "content": "Content you create: book reviews, quotes, and cover images you upload.",
+          "technical": "Technical data: IP address, browser type, and pages visited, collected automatically for security and service operation."
+        }
+      },
+      "usage": {
+        "title": "How We Use Your Data",
+        "items": {
+          "provide": "To provide and maintain the service, including displaying your published reviews.",
+          "authenticate": "To authenticate your identity and manage your account.",
+          "improve": "To monitor and improve the performance and security of the service."
+        }
+      },
+      "thirdParty": {
+        "title": "Third-Party Services",
+        "body": "We use Keycloak for authentication. If you sign in with Google or Facebook, their respective privacy policies apply to the data they process. We only receive your name and email from these providers. We do not sell or share your personal data with third parties for advertising purposes."
+      },
+      "cookies": {
+        "title": "Cookies",
+        "body": "We use essential cookies required for authentication and session management. We do not use tracking or advertising cookies."
+      },
+      "rights": {
+        "title": "Your Rights",
+        "body": "You can view, edit, or delete your reviews at any time through your dashboard. To delete your account or request a copy of your data, please contact us using the information below."
+      },
+      "contact": {
+        "title": "Contact",
+        "body": "For privacy-related questions, contact us at noreply@bookreview.ge."
+      }
+    }
+  },
   "locale": {
     "en": "English",
     "ka": "\u10e5\u10d0\u10e0\u10d7\u10e3\u10da\u10d8"
