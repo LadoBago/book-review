@@ -70,6 +70,7 @@ jobs:
       - name: Deploy with Helm
         run: |
           helm upgrade --install ${{ env.HELM_RELEASE_NAME }} ./helm/book-review \
+            -n book-review --create-namespace \
             -f helm/book-review/values.prod.yaml \
             --set api.image.repository=${{ env.ACR_LOGIN_SERVER }}/book-review-api \
             --set api.image.tag=${{ needs.build-and-push.outputs.image-tag }} \
