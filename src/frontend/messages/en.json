@@ -53,6 +53,7 @@
     "rejectedLabel": "Rejected:",
     "titleLabel": "Title",
     "titlePlaceholder": "Book title or review title",
+    "titleHint": "At least 3 characters",
     "write": "Write",
     "preview": "Preview",
     "nothingToPreview": "Nothing to preview",
@@ -66,6 +67,7 @@
     "cancel": "Cancel",
     "saveFirstError": "Please save the review as a draft first before uploading an image.",
     "bodyLabel": "Body (Markdown)",
+    "bodyHint": "At least 10 characters",
     "bodyPlaceholder": "Write your review in markdown...",
     "quotesLabel": "Favorite Quotes",
     "quotePlaceholder": "Quote {number}",
@@ -103,7 +105,8 @@
     "rejectPlaceholder": "Reason for rejection (required)",
     "rejectRequired": "Rejection reason is required.",
     "confirmReject": "Confirm Reject",
-    "rejecting": "Rejecting..."
+    "rejecting": "Rejecting...",
+    "draftRevisionNotice": "This is a draft revision of a published review. Approving will update the live version."
   },
   "common": {
     "confirm": "Confirm",

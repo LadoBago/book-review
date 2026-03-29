@@ -61,7 +61,9 @@ function initFormState(review?: ReviewDto): FormState {
     quotes: hasDraft
       ? review?.draftQuotes || []
       : review?.quotes.map((q) => q.text) || [],
-    coverImageUrl: review?.coverImageUrl || null,
+    coverImageUrl: hasDraft
+      ? (review?.draftCoverImageUrl === "" ? null : review?.draftCoverImageUrl ?? review?.coverImageUrl ?? null)
+      : review?.coverImageUrl || null,
     showPreview: false,
     saving: false,
     uploading: false,
@@ -146,7 +148,10 @@ export default function ReviewForm({ review }: ReviewFormProps) {
     dispatch({ type: "SET_LOADING", operation: "uploading", loading: true });
     try {
       const updated = await uploadCoverImage(review.id, file);
-      dispatch({ type: "SET_COVER_URL", url: updated.coverImageUrl });
+      const url = updated.draftCoverImageUrl != null && updated.draftCoverImageUrl !== ""
+        ? updated.draftCoverImageUrl
+        : updated.coverImageUrl;
+      dispatch({ type: "SET_COVER_URL", url });
     } catch (err) {
       dispatch({ type: "SET_ERROR", error: err instanceof Error ? err.message : tErrors("failedToUpload") });
     } finally {
@@ -199,6 +204,9 @@ export default function ReviewForm({ review }: ReviewFormProps) {
           maxLength={200}
           className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         />
+        {title.length > 0 && title.trim().length < 3 && (
+          <p className="mt-1 text-xs text-amber-600">{t("titleHint")}</p>
+        )}
       </div>
 
       <CoverImageUpload
@@ -245,6 +253,9 @@ export default function ReviewForm({ review }: ReviewFormProps) {
       ) : (
         <MarkdownEditor value={body} onChange={(v) => dispatch({ type: "SET_FIELD", field: "body", value: v })} />
       )}
+      {body.length > 0 && body.trim().length < 10 && (
+        <p className="text-xs text-amber-600">{t("bodyHint")}</p>
+      )}
 
       <QuoteList quotes={quotes} onChange={(q) => dispatch({ type: "SET_QUOTES", quotes: q })} />
 
@@ -252,7 +263,7 @@ export default function ReviewForm({ review }: ReviewFormProps) {
         <button
           type="button"
           onClick={() => handleSave(ReviewStatus.Draft)}
-          disabled={saving || !title.trim() || !body.trim()}
+          disabled={saving || title.trim().length < 3 || body.trim().length < 10}
           className="rounded-md border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50 disabled:opacity-50"
         >
           {saving ? t("saving") : isPublished ? t("saveDraftRevision") : t("saveDraft")}
@@ -261,7 +272,7 @@ export default function ReviewForm({ review }: ReviewFormProps) {
           <button
             type="button"
             onClick={handlePublishDirect}
-            disabled={saving || !title.trim() || !body.trim()}
+            disabled={saving || title.trim().length < 3 || body.trim().length < 10}
             className="rounded-md bg-green-700 px-4 py-2 text-sm text-white hover:bg-green-800 disabled:opacity-50"
           >
             {saving ? tPublish("publishing") : tPublish("publish")}
@@ -270,7 +281,7 @@ export default function ReviewForm({ review }: ReviewFormProps) {
           <button
             type="button"
             onClick={() => handleSave(ReviewStatus.Published)}
-            disabled={saving || !title.trim() || !body.trim()}
+            disabled={saving || title.trim().length < 3 || body.trim().length < 10}
             className="rounded-md bg-gray-900 px-4 py-2 text-sm text-white hover:bg-gray-700 disabled:opacity-50"
           >
             {saving ? t("submitting") : t("submitForReview")}

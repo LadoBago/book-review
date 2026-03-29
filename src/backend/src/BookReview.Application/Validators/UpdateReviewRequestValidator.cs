@@ -9,15 +9,14 @@ public class UpdateReviewRequestValidator : AbstractValidator<UpdateReviewReques
     public UpdateReviewRequestValidator()
     {
         RuleFor(x => x.Title)
-            .MaximumLength(200).WithMessage("Title must not exceed 200 characters.")
-            .When(x => x.Title != null);
-
-        RuleFor(x => x.Title)
             .NotEmpty().WithMessage("Title cannot be empty.")
+            .MinimumLength(3).WithMessage("Title must be at least 3 characters.")
+            .MaximumLength(200).WithMessage("Title must not exceed 200 characters.")
             .When(x => x.Title != null);
 
         RuleFor(x => x.Body)
             .NotEmpty().WithMessage("Body cannot be empty.")
+            .MinimumLength(10).WithMessage("Body must be at least 10 characters.")
             .MaximumLength(100_000).WithMessage("Body must not exceed 100,000 characters.")
             .When(x => x.Body != null);
 

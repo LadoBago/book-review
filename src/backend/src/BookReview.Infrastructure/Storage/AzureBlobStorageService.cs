@@ -53,15 +53,8 @@ public class AzureBlobStorageService : IStorageService
             await _containerClient.SetAccessPolicyAsync(PublicAccessType.Blob, cancellationToken: cancellationToken);
         }
 
+        // Use only a random GUID as blob name — never trust user-supplied file paths
         var blobName = $"{Guid.NewGuid():N}{extension}";
-        if (fileName.Contains('/'))
-        {
-            var prefix = fileName[..fileName.LastIndexOf('/')];
-            // Sanitize: strip path traversal characters
-            prefix = prefix.Replace("..", "").Replace("\\", "").Trim('/');
-            if (!string.IsNullOrEmpty(prefix))
-                blobName = $"{prefix}/{blobName}";
-        }
 
         var blobClient = _containerClient.GetBlobClient(blobName);
 

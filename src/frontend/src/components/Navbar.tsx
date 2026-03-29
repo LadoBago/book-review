@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSession, signIn } from "next-auth/react";
 import { useTranslations, useLocale } from "next-intl";
 import { Link, useRouter, usePathname } from "@/i18n/navigation";
 import { locales, Locale } from "@/i18n/config";
+import { getPendingReviews } from "@/lib/api";
 
 export default function Navbar() {
   const { data: session, status } = useSession();
@@ -13,12 +14,21 @@ export default function Navbar() {
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
+  const [pendingCount, setPendingCount] = useState(0);
 
   useEffect(() => {
     if (session?.error === "RefreshTokenError") {
       signIn("keycloak");
     }
   }, [session?.error]);
+
+  useEffect(() => {
+    if (session?.isAdmin) {
+      getPendingReviews(1, 1)
+        .then((result) => setPendingCount(result.totalCount))
+        .catch(() => {});
+    }
+  }, [session?.isAdmin, pathname]);
 
   function switchLocale(newLocale: string) {
     router.replace(pathname, { locale: newLocale as Locale });
@@ -50,9 +60,14 @@ export default function Navbar() {
               {session.isAdmin && (
                 <Link
                   href="/dashboard/moderation"
-                  className="text-sm text-orange-600 hover:text-orange-800"
+                  className="relative text-sm text-orange-600 hover:text-orange-800"
                 >
                   {t("moderation")}
+                  {pendingCount > 0 && (
+                    <span className="absolute -right-5 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-xs font-medium text-white">
+                      {pendingCount}
+                    </span>
+                  )}
                 </Link>
               )}
               <div className="relative group">

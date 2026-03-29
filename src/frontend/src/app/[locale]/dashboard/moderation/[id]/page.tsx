@@ -29,6 +29,17 @@ export default async function ModerationDetailPage({ params }: ModerationDetailP
     notFound();
   }
 
+  // Show draft content if this is a published review with pending draft changes
+  const hasDraft = review.hasDraft;
+  const displayTitle = (hasDraft ? review.draftTitle : null) ?? review.title;
+  const displayBody = (hasDraft ? review.draftBody : null) ?? review.body;
+  const displayCoverImageUrl = hasDraft
+    ? (review.draftCoverImageUrl === "" ? null : review.draftCoverImageUrl ?? review.coverImageUrl)
+    : review.coverImageUrl;
+  const displayQuotes: string[] = hasDraft && review.draftQuotes
+    ? review.draftQuotes
+    : review.quotes.map((q) => q.text);
+
   const date = new Date(review.createdAt).toLocaleDateString(locale, {
     year: "numeric",
     month: "long",
@@ -47,19 +58,25 @@ export default async function ModerationDetailPage({ params }: ModerationDetailP
         <ModerationActions reviewId={review.id} />
       </div>
 
+      {hasDraft && review.status === "Published" && (
+        <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+          {t("draftRevisionNotice")}
+        </div>
+      )}
+
       <article>
-        {review.coverImageUrl && (
+        {displayCoverImageUrl && (
           <div className="mb-8 overflow-hidden rounded-lg">
             <img
-              src={review.coverImageUrl}
-              alt={review.title}
+              src={displayCoverImageUrl}
+              alt={displayTitle}
               className="h-auto w-full max-h-96 object-cover"
             />
           </div>
         )}
 
         <header className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900">{review.title}</h1>
+          <h1 className="text-4xl font-bold text-gray-900">{displayTitle}</h1>
           <div className="mt-4 flex items-center gap-4 text-sm text-gray-500">
             <span>{tReview("by", { author: review.authorName })}</span>
             <span>{date}</span>
@@ -67,21 +84,21 @@ export default async function ModerationDetailPage({ params }: ModerationDetailP
         </header>
 
         <div className="mb-8">
-          <MarkdownPreview content={review.body} />
+          <MarkdownPreview content={displayBody} />
         </div>
 
-        {review.quotes.length > 0 && (
+        {displayQuotes.length > 0 && (
           <section className="border-t border-gray-200 pt-8">
             <h2 className="mb-4 text-2xl font-semibold text-gray-900">
               {tReview("favoriteQuotes")}
             </h2>
             <div className="space-y-4">
-              {review.quotes.map((quote) => (
+              {displayQuotes.map((quote, index) => (
                 <blockquote
-                  key={quote.id}
+                  key={index}
                   className="border-l-4 border-blue-500 bg-blue-50 py-3 pl-4 pr-4 text-gray-700 italic"
                 >
-                  &ldquo;{quote.text}&rdquo;
+                  &ldquo;{quote}&rdquo;
                 </blockquote>
               ))}
             </div>

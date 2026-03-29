@@ -25,12 +25,18 @@ spec:
             - containerPort: 3000
               protocol: TCP
           env:
+            - name: HOSTNAME
+              value: "0.0.0.0"
             - name: API_INTERNAL_URL
               value: "http://{{ .Release.Name }}-api:{{ .Values.api.service.port }}"
             - name: NEXTAUTH_URL
               value: {{ .Values.web.env.NEXTAUTH_URL | quote }}
             - name: KEYCLOAK_CLIENT_ID
               value: {{ .Values.web.env.KEYCLOAK_CLIENT_ID | quote }}
+            - name: NEXT_PUBLIC_KEYCLOAK_URL
+              value: {{ .Values.web.env.NEXT_PUBLIC_KEYCLOAK_URL | quote }}
+            - name: AUTH_TRUST_HOST
+              value: "true"
           envFrom:
             - secretRef:
                 name: {{ .Release.Name }}-secrets

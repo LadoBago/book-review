@@ -1,3 +1,4 @@
+using BookReview.Application.Interfaces;
 using BookReview.Application.Services;
 using BookReview.Domain.Entities;
 using BookReview.Domain.Exceptions;
@@ -9,12 +10,14 @@ namespace BookReview.Application.Tests;
 public class ModerationServiceTests
 {
     private readonly IReviewRepository _repository;
+    private readonly IStorageService _storageService;
     private readonly ModerationService _service;
 
     public ModerationServiceTests()
     {
         _repository = Substitute.For<IReviewRepository>();
-        _service = new ModerationService(_repository);
+        _storageService = Substitute.For<IStorageService>();
+        _service = new ModerationService(_repository, _storageService);
     }
 
     [Fact]
@@ -99,7 +102,7 @@ public class ModerationServiceTests
         reviews[0].SubmitForReview();
         reviews[1].SubmitForReview();
 
-        _repository.GetPagedAsync(1, 10, null, ReviewStatus.PendingReview, null, Arg.Any<CancellationToken>())
+        _repository.GetPendingModerationAsync(1, 10, Arg.Any<CancellationToken>())
             .Returns((reviews.AsReadOnly() as IReadOnlyList<Review>, 2));
 
         var result = await _service.GetPendingAsync(1, 10);

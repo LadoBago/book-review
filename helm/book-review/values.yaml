@@ -35,15 +35,16 @@ web:
       cpu: 300m
       memory: 256Mi
   env:
-    NEXTAUTH_URL: https://bookreview.example.com
+    NEXTAUTH_URL: https://bookreview.ge
     KEYCLOAK_CLIENT_ID: book-review-web
+    NEXT_PUBLIC_KEYCLOAK_URL: https://auth.bookreview.ge/realms/book-review
 
 ingress:
   enabled: true
   className: nginx
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-  host: bookreview.example.com
+  host: bookreview.ge
   tls:
     enabled: true
     secretName: book-review-tls

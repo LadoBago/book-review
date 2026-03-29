@@ -31,6 +31,9 @@ export async function generateMetadata({
       template: `%s | ${t("siteTitle")}`,
     },
     description: t("siteDescription"),
+    icons: {
+      icon: "/favicon.svg",
+    },
   };
 }
 

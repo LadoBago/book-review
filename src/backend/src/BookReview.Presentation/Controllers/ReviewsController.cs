@@ -39,6 +39,8 @@ public class ReviewsController : ControllerBase
     {
         page = Math.Max(1, page);
         pageSize = Math.Clamp(pageSize, 1, 100);
+        if (search is { Length: > 200 })
+            search = search[..200];
         var result = await _reviewService.GetPublishedAsync(page, pageSize, search, cancellationToken);
         return Ok(result);
     }
@@ -132,9 +134,17 @@ public class ReviewsController : ControllerBase
     [HttpPost("{id:guid}/unpublish")]
     public async Task<ActionResult<ReviewDto>> Unpublish(Guid id, CancellationToken cancellationToken = default)
     {
-        var authorId = User.GetUserId();
-        var review = await _reviewService.UnpublishAsync(id, authorId, cancellationToken);
-        return Ok(review);
+        if (User.IsAdmin())
+        {
+            var review = await _moderationService.UnpublishAsync(id, cancellationToken);
+            return Ok(review);
+        }
+        else
+        {
+            var authorId = User.GetUserId();
+            var review = await _reviewService.UnpublishAsync(id, authorId, cancellationToken);
+            return Ok(review);
+        }
     }
 
     [Authorize]
@@ -148,6 +158,11 @@ public class ReviewsController : ControllerBase
 
     private const long MaxCoverImageSizeBytes = 5 * 1024 * 1024; // 5MB
 
+    private static readonly HashSet<string> AllowedMimeTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "image/jpeg", "image/png", "image/webp"
+    };
+
     [Authorize]
     [HttpPost("{id:guid}/cover")]
     public async Task<ActionResult<ReviewDto>> UploadCover(
@@ -160,6 +175,9 @@ public class ReviewsController : ControllerBase
 
         if (file.Length > MaxCoverImageSizeBytes)
             return BadRequest(new { detail = "File size exceeds the maximum allowed size of 5MB." });
+
+        if (!AllowedMimeTypes.Contains(file.ContentType))
+            return BadRequest(new { detail = "Invalid file type. Allowed types: JPEG, PNG, WebP." });
 
         var authorId = User.GetUserId();
         using var stream = file.OpenReadStream();

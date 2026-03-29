@@ -110,6 +110,7 @@ services:
       API_INTERNAL_URL: "http://api:5000"
       NEXTAUTH_URL: "http://localhost:3000"
       NEXTAUTH_SECRET: "dev-secret-change-in-production"
+      AUTH_SECRET: "dev-secret-change-in-production"
       KEYCLOAK_ISSUER: "http://keycloak:8080/realms/book-review"
       KEYCLOAK_CLIENT_ID: "book-review-web"
       NEXT_PUBLIC_KEYCLOAK_URL: "http://localhost:8080/realms/book-review"

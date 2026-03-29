@@ -17,5 +17,6 @@ public class ReviewDto
     public string? DraftTitle { get; init; }
     public string? DraftBody { get; init; }
     public List<string>? DraftQuotes { get; init; }
+    public string? DraftCoverImageUrl { get; init; }
     public string? RejectionReason { get; init; }
 }

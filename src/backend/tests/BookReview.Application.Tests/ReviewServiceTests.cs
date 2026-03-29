@@ -205,7 +205,7 @@ public class ReviewServiceTests
     }
 
     [Fact]
-    public async Task PublishAsync_PublishedReviewWithDraft_PublishesDraftRevision()
+    public async Task PublishAsync_PublishedReviewWithDraft_KeepsDraftForModeration()
     {
         var review = new Review("Title", "Body", "user-1", "John");
         review.Publish();
@@ -215,10 +215,11 @@ public class ReviewServiceTests
 
         var result = await _service.PublishAsync(review.Id, "user-1");
 
+        // Non-admin: draft stays, live version unchanged, goes to moderation queue
         Assert.Equal("Published", result.Status);
-        Assert.Equal("New Title", result.Title);
-        Assert.Equal("New Body", result.Body);
-        Assert.False(result.HasDraft);
+        Assert.Equal("Title", result.Title);
+        Assert.True(result.HasDraft);
+        Assert.Equal("New Title", result.DraftTitle);
     }
 
     [Fact]

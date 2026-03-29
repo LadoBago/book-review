@@ -24,18 +24,21 @@ try
     builder.Host.UseSerilog();
 
     builder.Services.AddControllers();
-    builder.Services.AddOpenApi();
-    builder.Services.AddSwaggerGen(options =>
+    if (builder.Environment.IsDevelopment())
     {
-        options.InferSecuritySchemes();
-    });
+        builder.Services.AddOpenApi();
+        builder.Services.AddSwaggerGen(options =>
+        {
+            options.InferSecuritySchemes();
+        });
+    }
 
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
         {
             options.Authority = builder.Configuration["Keycloak:Authority"];
             options.Audience = builder.Configuration["Keycloak:Audience"];
-            options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
+            options.RequireHttpsMetadata = builder.Configuration.GetValue("Keycloak:RequireHttpsMetadata", !builder.Environment.IsDevelopment());
             options.MapInboundClaims = false;
             options.TokenValidationParameters = new TokenValidationParameters
             {
@@ -55,6 +58,19 @@ try
         options.AddPolicy("Admin", policy => policy.RequireAssertion(context =>
             context.User.IsInRole("admin") ||
             BookReview.Presentation.Extensions.ClaimsPrincipalExtensions.IsAdmin(context.User)));
+    });
+
+    var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+        ?? ["http://localhost:3000"];
+    builder.Services.AddCors(options =>
+    {
+        options.AddDefaultPolicy(policy =>
+        {
+            policy.WithOrigins(allowedOrigins)
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials();
+        });
     });
 
     builder.Services.AddRateLimiter(options =>
@@ -100,6 +116,7 @@ try
     app.UseMiddleware<ExceptionHandlingMiddleware>();
     app.UseSerilogRequestLogging();
     app.UseHttpMetrics();
+    app.UseCors();
     app.UseAuthentication();
     app.UseAuthorization();
     app.MapControllers();

@@ -221,7 +221,7 @@ public class ReviewTests
     }
 
     [Fact]
-    public void SetCoverImageUrl_SetsUrlAndUpdatesTimestamp()
+    public void SetCoverImageUrl_DraftReview_SetsUrlAndUpdatesTimestamp()
     {
         var review = new Review("Title", "Body", "user-1", "John");
         var beforeUpdate = review.UpdatedAt;
@@ -230,5 +230,139 @@ public class ReviewTests
 
         Assert.Equal("https://storage.example.com/cover.jpg", review.CoverImageUrl);
         Assert.True(review.UpdatedAt >= beforeUpdate);
+    }
+
+    [Fact]
+    public void SetCoverImageUrl_PublishedReview_ThrowsDomainException()
+    {
+        var review = new Review("Title", "Body", "user-1", "John");
+        review.Publish();
+
+        Assert.Throws<DomainException>(() =>
+            review.SetCoverImageUrl("https://storage.example.com/cover.jpg"));
+    }
+
+    [Fact]
+    public void ClearCoverImageUrl_PublishedReview_ThrowsDomainException()
+    {
+        var review = new Review("Title", "Body", "user-1", "John");
+        review.SetCoverImageUrl("https://storage.example.com/cover.jpg");
+        review.Publish();
+
+        Assert.Throws<DomainException>(() => review.ClearCoverImageUrl());
+    }
+
+    [Fact]
+    public void SetDraftCoverImageUrl_PublishedReview_SetsDraftField()
+    {
+        var review = new Review("Title", "Body", "user-1", "John");
+        review.Publish();
+
+        review.SetDraftCoverImageUrl("https://storage.example.com/new-cover.jpg");
+
+        Assert.Equal("https://storage.example.com/new-cover.jpg", review.DraftCoverImageUrl);
+        Assert.True(review.HasDraft);
+    }
+
+    [Fact]
+    public void SetDraftCoverImageUrl_PublishedReview_AutoPopulatesTextDraft()
+    {
+        var review = new Review("Title", "Body", "user-1", "John", ["Quote 1"]);
+        review.Publish();
+
+        review.SetDraftCoverImageUrl("https://storage.example.com/new-cover.jpg");
+
+        Assert.Equal("Title", review.DraftTitle);
+        Assert.Equal("Body", review.DraftBody);
+        Assert.NotNull(review.DraftQuotes);
+        Assert.Single(review.DraftQuotes);
+    }
+
+    [Fact]
+    public void SetDraftCoverImageUrl_DraftReview_ThrowsDomainException()
+    {
+        var review = new Review("Title", "Body", "user-1", "John");
+
+        Assert.Throws<DomainException>(() =>
+            review.SetDraftCoverImageUrl("https://storage.example.com/cover.jpg"));
+    }
+
+    [Fact]
+    public void ClearDraftCoverImageUrl_PublishedReview_SetsSentinel()
+    {
+        var review = new Review("Title", "Body", "user-1", "John");
+        review.Publish();
+
+        review.ClearDraftCoverImageUrl();
+
+        Assert.Equal(string.Empty, review.DraftCoverImageUrl);
+        Assert.True(review.HasDraft);
+    }
+
+    [Fact]
+    public void PublishDraftRevision_WithDraftCoverImage_PromotesCoverImage()
+    {
+        var review = new Review("Title", "Body", "user-1", "John");
+        review.Publish();
+        review.SaveDraftRevision("Title", "Body");
+        review.SetDraftCoverImageUrl("https://storage.example.com/new-cover.jpg");
+
+        review.PublishDraftRevision();
+
+        Assert.Equal("https://storage.example.com/new-cover.jpg", review.CoverImageUrl);
+        Assert.Null(review.DraftCoverImageUrl);
+    }
+
+    [Fact]
+    public void PublishDraftRevision_WithClearedDraftCoverImage_NullsCoverImage()
+    {
+        var review = new Review("Title", "Body", "user-1", "John");
+        review.SetCoverImageUrl("https://storage.example.com/old.jpg");
+        review.Publish();
+        review.ClearDraftCoverImageUrl();
+
+        review.PublishDraftRevision();
+
+        Assert.Null(review.CoverImageUrl);
+        Assert.Null(review.DraftCoverImageUrl);
+    }
+
+    [Fact]
+    public void PublishDraftRevision_WithNullDraftCoverImage_KeepsExistingCover()
+    {
+        var review = new Review("Title", "Body", "user-1", "John");
+        review.SetCoverImageUrl("https://storage.example.com/old.jpg");
+        review.Publish();
+        review.SaveDraftRevision("New Title", "New Body");
+
+        review.PublishDraftRevision();
+
+        Assert.Equal("https://storage.example.com/old.jpg", review.CoverImageUrl);
+    }
+
+    [Fact]
+    public void DiscardDraft_ClearsDraftCoverImageUrl()
+    {
+        var review = new Review("Title", "Body", "user-1", "John");
+        review.Publish();
+        review.SetDraftCoverImageUrl("https://storage.example.com/new-cover.jpg");
+
+        review.DiscardDraft();
+
+        Assert.Null(review.DraftCoverImageUrl);
+        Assert.False(review.HasDraft);
+    }
+
+    [Fact]
+    public void HasDraft_OnlyCoverImageDraft_ReturnsTrue()
+    {
+        var review = new Review("Title", "Body", "user-1", "John");
+        review.Publish();
+
+        Assert.False(review.HasDraft);
+
+        review.SetDraftCoverImageUrl("https://storage.example.com/cover.jpg");
+
+        Assert.True(review.HasDraft);
     }
 }

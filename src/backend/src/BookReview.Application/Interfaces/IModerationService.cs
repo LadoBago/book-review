@@ -9,4 +9,5 @@ public interface IModerationService
     Task<ReviewDto> ApproveAsync(Guid id, CancellationToken cancellationToken = default);
     Task<ReviewDto> RejectAsync(Guid id, string reason, CancellationToken cancellationToken = default);
     Task<ReviewDto> PublishDirectAsync(Guid id, string authorId, CancellationToken cancellationToken = default);
+    Task<ReviewDto> UnpublishAsync(Guid id, CancellationToken cancellationToken = default);
 }

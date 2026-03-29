@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 interface CoverImageUploadProps {
   currentUrl: string | null;
@@ -28,6 +29,11 @@ export default function CoverImageUpload({
     const file = e.target.files?.[0];
     if (!file) return;
     setSizeError(null);
+    if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+      setSizeError(t("fileTypeError", { fallback: "Invalid file type. Allowed: JPEG, PNG, WebP." }));
+      if (inputRef.current) inputRef.current.value = "";
+      return;
+    }
     if (file.size > MAX_FILE_SIZE_BYTES) {
       setSizeError(t("fileSizeError"));
       if (inputRef.current) inputRef.current.value = "";

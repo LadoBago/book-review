@@ -28,6 +28,7 @@ public static class ReviewMappingExtensions
             DraftTitle = review.DraftTitle,
             DraftBody = review.DraftBody,
             DraftQuotes = review.DraftQuotes?.ToList(),
+            DraftCoverImageUrl = review.DraftCoverImageUrl,
             RejectionReason = review.RejectionReason
         };
     }

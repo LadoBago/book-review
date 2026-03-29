@@ -22,7 +22,8 @@ public class Review
     public string? DraftTitle { get; private set; }
     public string? DraftBody { get; private set; }
     public IReadOnlyList<string>? DraftQuotes { get; private set; }
-    public bool HasDraft => DraftTitle != null;
+    public string? DraftCoverImageUrl { get; private set; }
+    public bool HasDraft => DraftTitle != null || DraftCoverImageUrl != null;
 
     public string? RejectionReason { get; private set; }
 
@@ -95,6 +96,7 @@ public class Review
         DraftTitle = title.Trim();
         DraftBody = body;
         DraftQuotes = quotes?.Where(q => !string.IsNullOrWhiteSpace(q)).ToList();
+        RejectionReason = null;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
@@ -103,22 +105,31 @@ public class Review
         if (!HasDraft)
             throw new DomainException("No draft revision to publish.");
 
-        if (DraftTitle!.Trim() != Title)
+        if (DraftTitle != null)
         {
-            Title = DraftTitle.Trim();
-            Slug = Slug.FromTitle(Title);
+            if (DraftTitle.Trim() != Title)
+            {
+                Title = DraftTitle.Trim();
+                Slug = Slug.FromTitle(Title);
+            }
+
+            Body = DraftBody!;
+
+            if (DraftQuotes != null)
+                ReplaceQuotes(DraftQuotes);
+            else
+                _quotes.Clear();
         }
 
-        Body = DraftBody!;
-
-        if (DraftQuotes != null)
-            ReplaceQuotes(DraftQuotes);
-        else
-            _quotes.Clear();
+        if (DraftCoverImageUrl == string.Empty)
+            CoverImageUrl = null;
+        else if (DraftCoverImageUrl != null)
+            CoverImageUrl = DraftCoverImageUrl;
 
         DraftTitle = null;
         DraftBody = null;
         DraftQuotes = null;
+        DraftCoverImageUrl = null;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
@@ -130,19 +141,56 @@ public class Review
         DraftTitle = null;
         DraftBody = null;
         DraftQuotes = null;
+        DraftCoverImageUrl = null;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
     public void SetCoverImageUrl(string url)
     {
+        if (Status == ReviewStatus.Published)
+            throw new DomainException("Use SetDraftCoverImageUrl to change cover image on a published review.");
+
         CoverImageUrl = url;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
     public void ClearCoverImageUrl()
     {
+        if (Status == ReviewStatus.Published)
+            throw new DomainException("Use ClearDraftCoverImageUrl to remove cover image on a published review.");
+
         CoverImageUrl = null;
         UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void SetDraftCoverImageUrl(string url)
+    {
+        if (Status != ReviewStatus.Published)
+            throw new DomainException("Only published reviews can have draft cover images.");
+
+        EnsureTextDraftExists();
+        DraftCoverImageUrl = url;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void ClearDraftCoverImageUrl()
+    {
+        if (Status != ReviewStatus.Published)
+            throw new DomainException("Only published reviews can have draft cover images.");
+
+        EnsureTextDraftExists();
+        DraftCoverImageUrl = string.Empty; // sentinel: clear image on publish
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    private void EnsureTextDraftExists()
+    {
+        if (DraftTitle == null)
+        {
+            DraftTitle = Title;
+            DraftBody = Body;
+            DraftQuotes = _quotes.Select(q => q.Text).ToList();
+        }
     }
 
     public void Publish()
@@ -168,6 +216,18 @@ public class Review
 
         Status = ReviewStatus.PendingReview;
         RejectionReason = null;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void SetRejectionReason(string reason)
+    {
+        if (string.IsNullOrWhiteSpace(reason))
+            throw new DomainException("Rejection reason is required.");
+
+        if (reason.Length > 500)
+            throw new DomainException("Rejection reason cannot exceed 500 characters.");
+
+        RejectionReason = reason.Trim();
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
