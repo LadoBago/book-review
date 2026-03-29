@@ -10,10 +10,12 @@ public class CreateReviewRequestValidator : AbstractValidator<CreateReviewReques
     {
         RuleFor(x => x.Title)
             .NotEmpty().WithMessage("Title is required.")
+            .MinimumLength(3).WithMessage("Title must be at least 3 characters.")
             .MaximumLength(200).WithMessage("Title must not exceed 200 characters.");
 
         RuleFor(x => x.Body)
             .NotEmpty().WithMessage("Body is required.")
+            .MinimumLength(10).WithMessage("Body must be at least 10 characters.")
             .MaximumLength(100_000).WithMessage("Body must not exceed 100,000 characters.");
 
         RuleFor(x => x.Status)

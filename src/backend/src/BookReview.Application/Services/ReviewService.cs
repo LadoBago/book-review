@@ -105,15 +105,9 @@ public class ReviewService : IReviewService
 
         if (review.Status == ReviewStatus.Published)
         {
-            if (targetStatus == nameof(ReviewStatus.Draft))
-            {
-                review.SaveDraftRevision(title, body, quotes?.ToList());
-            }
-            else
-            {
-                review.SaveDraftRevision(title, body, quotes?.ToList());
-                review.PublishDraftRevision();
-            }
+            // Always save as draft revision — publishing goes through
+            // PublishAsync (moderation) or PublishDirectAsync (admin)
+            review.SaveDraftRevision(title, body, quotes?.ToList());
         }
         else
         {
@@ -151,14 +145,40 @@ public class ReviewService : IReviewService
         if (review.AuthorId != authorId)
             throw new ForbiddenException("You can only edit your own reviews.");
 
-        if (review.HasDraft)
-            review.PublishDraftRevision();
+        if (review.Status == ReviewStatus.Published)
+        {
+            // Non-admin: published review with draft goes to moderation queue.
+            // The live version stays up. Admin approves via PublishDirectAsync.
+            if (!review.HasDraft)
+                throw new DomainException("No changes to submit for review.");
+        }
         else
+        {
             review.SubmitForReview();
+        }
 
         await _reviewRepository.UpdateAsync(review, cancellationToken);
 
         return review.ToDto();
+    }
+
+    private async Task CleanupOldCoverOnPublish(Review review, CancellationToken cancellationToken)
+    {
+        var draftCoverUrl = review.DraftCoverImageUrl;
+        if (draftCoverUrl == null) return; // no cover change
+
+        var oldCoverUrl = review.CoverImageUrl;
+        if (draftCoverUrl == string.Empty)
+        {
+            // Clearing cover image — delete old blob
+            if (oldCoverUrl != null)
+                await _storageService.DeleteImageAsync(oldCoverUrl, cancellationToken);
+        }
+        else if (oldCoverUrl != null && oldCoverUrl != draftCoverUrl)
+        {
+            // Replacing cover image — delete old blob
+            await _storageService.DeleteImageAsync(oldCoverUrl, cancellationToken);
+        }
     }
 
     public async Task<ReviewDto> UnpublishAsync(
@@ -185,6 +205,11 @@ public class ReviewService : IReviewService
         if (review.AuthorId != authorId)
             throw new ForbiddenException("You can only edit your own reviews.");
 
+        // Delete draft cover image blob if it differs from the live one
+        var draftCoverUrl = review.DraftCoverImageUrl;
+        if (!string.IsNullOrEmpty(draftCoverUrl) && draftCoverUrl != review.CoverImageUrl)
+            await _storageService.DeleteImageAsync(draftCoverUrl, cancellationToken);
+
         review.DiscardDraft();
         await _reviewRepository.UpdateAsync(review, cancellationToken);
 
@@ -201,9 +226,49 @@ public class ReviewService : IReviewService
             throw new ForbiddenException("You can only upload images for your own reviews.");
 
         var url = await _storageService.UploadImageAsync(imageStream, $"{id}/{fileName}", cancellationToken);
-        review.SetCoverImageUrl(url);
+
+        if (review.Status == ReviewStatus.Published)
+        {
+            // Delete previous draft cover image blob if replacing
+            if (!string.IsNullOrEmpty(review.DraftCoverImageUrl))
+                await _storageService.DeleteImageAsync(review.DraftCoverImageUrl, cancellationToken);
+
+            review.SetDraftCoverImageUrl(url);
+        }
+        else
+        {
+            review.SetCoverImageUrl(url);
+        }
 
         await _reviewRepository.UpdateAsync(review, cancellationToken);
+
+        return review.ToDto();
+    }
+
+    public async Task<ReviewDto> DeleteCoverImageAsync(
+        Guid id, string authorId, CancellationToken cancellationToken = default)
+    {
+        var review = await _reviewRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new NotFoundException("Review not found.");
+
+        if (review.AuthorId != authorId)
+            throw new ForbiddenException("You can only modify your own reviews.");
+
+        if (review.Status == ReviewStatus.Published)
+        {
+            // Delete draft cover image blob if one exists
+            if (!string.IsNullOrEmpty(review.DraftCoverImageUrl))
+                await _storageService.DeleteImageAsync(review.DraftCoverImageUrl, cancellationToken);
+
+            review.ClearDraftCoverImageUrl();
+            await _reviewRepository.UpdateAsync(review, cancellationToken);
+        }
+        else if (review.CoverImageUrl != null)
+        {
+            await _storageService.DeleteImageAsync(review.CoverImageUrl, cancellationToken);
+            review.ClearCoverImageUrl();
+            await _reviewRepository.UpdateAsync(review, cancellationToken);
+        }
 
         return review.ToDto();
     }

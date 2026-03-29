@@ -44,11 +44,12 @@ public static class ClaimsPrincipalExtensions
             }
             catch
             {
-                // Ignore parse errors
+                // Fail closed: malformed claim → not admin
+                return false;
             }
         }
 
-        // Fallback: check standard role claims
+        // Fallback: check standard role claims (mapped by ASP.NET)
         return principal.IsInRole("admin");
     }
 

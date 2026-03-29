@@ -1,11 +1,15 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 interface QuoteListProps {
   quotes: string[];
   onChange: (quotes: string[]) => void;
 }
 
 export default function QuoteList({ quotes, onChange }: QuoteListProps) {
+  const t = useTranslations("editor");
+
   function addQuote() {
     onChange([...quotes, ""]);
   }
@@ -23,7 +27,7 @@ export default function QuoteList({ quotes, onChange }: QuoteListProps) {
   return (
     <div>
       <label className="mb-1 block text-sm font-medium text-gray-700">
-        Favorite Quotes
+        {t("quotesLabel")}
       </label>
       <div className="space-y-2">
         {quotes.map((quote, index) => (
@@ -32,7 +36,7 @@ export default function QuoteList({ quotes, onChange }: QuoteListProps) {
               type="text"
               value={quote}
               onChange={(e) => updateQuote(index, e.target.value)}
-              placeholder={`Quote ${index + 1}`}
+              placeholder={t("quotePlaceholder", { number: index + 1 })}
               maxLength={500}
               className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
@@ -41,7 +45,7 @@ export default function QuoteList({ quotes, onChange }: QuoteListProps) {
               onClick={() => removeQuote(index)}
               className="rounded-md border border-red-200 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
             >
-              Remove
+              {t("removeQuote")}
             </button>
           </div>
         ))}
@@ -52,7 +56,7 @@ export default function QuoteList({ quotes, onChange }: QuoteListProps) {
           onClick={addQuote}
           className="mt-2 rounded-md border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50"
         >
-          + Add Quote
+          {t("addQuote")}
         </button>
       )}
     </div>

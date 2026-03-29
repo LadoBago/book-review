@@ -1,17 +1,24 @@
-import Link from "next/link";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getMyReviews } from "@/lib/api";
 import { ReviewStatus } from "@/types/review";
 import Pagination from "@/components/Pagination";
 import UnpublishButton from "@/components/UnpublishButton";
 import PublishButton from "@/components/PublishButton";
+import { Link } from "@/i18n/navigation";
 
 interface DashboardProps {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{ page?: string }>;
 }
 
-export default async function DashboardPage({ searchParams }: DashboardProps) {
-  const params = await searchParams;
-  const page = Number(params.page) || 1;
+export default async function DashboardPage({ params, searchParams }: DashboardProps) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("dashboard");
+  const tReview = await getTranslations("review");
+
+  const sp = await searchParams;
+  const page = Number(sp.page) || 1;
 
   let reviews;
   try {
@@ -23,18 +30,18 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-3xl font-bold">My Reviews</h1>
+        <h1 className="text-3xl font-bold">{t("title")}</h1>
         <Link
           href="/dashboard/reviews/new"
           className="rounded-md bg-gray-900 px-4 py-2 text-sm text-white hover:bg-gray-700"
         >
-          New Review
+          {t("newReview")}
         </Link>
       </div>
 
       {!reviews || reviews.items.length === 0 ? (
         <div className="rounded-lg border border-gray-200 bg-white py-12 text-center text-gray-500">
-          You haven&apos;t written any reviews yet.
+          {t("noReviews")}
         </div>
       ) : (
         <>
@@ -43,14 +50,14 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
               <thead className="border-b border-gray-200 bg-gray-50">
                 <tr>
                   <th className="px-4 py-3 font-medium text-gray-700">
-                    Title
+                    {t("colTitle")}
                   </th>
                   <th className="px-4 py-3 font-medium text-gray-700">
-                    Status
+                    {t("colStatus")}
                   </th>
-                  <th className="px-4 py-3 font-medium text-gray-700">Date</th>
+                  <th className="px-4 py-3 font-medium text-gray-700">{t("colDate")}</th>
                   <th className="px-4 py-3 font-medium text-gray-700">
-                    Actions
+                    {t("colActions")}
                   </th>
                 </tr>
               </thead>
@@ -80,22 +87,24 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
                         }`}
                       >
                         {review.status === ReviewStatus.PendingReview
-                          ? "Pending Approval"
-                          : review.status}
+                          ? t("pendingApproval")
+                          : review.status === ReviewStatus.Published
+                            ? t("statusPublished")
+                            : t("statusDraft")}
                       </span>
                       {review.hasDraft && (
                         <span className="ml-1 inline-block rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700">
-                          Draft Pending
+                          {t("draftPending")}
                         </span>
                       )}
                       {review.rejectionReason && (
                         <p className="mt-1 text-xs text-red-600">
-                          Rejected: {review.rejectionReason}
+                          {t("rejected", { reason: review.rejectionReason })}
                         </p>
                       )}
                     </td>
                     <td className="px-4 py-3 text-gray-500">
-                      {new Date(review.createdAt).toLocaleDateString()}
+                      {new Date(review.createdAt).toLocaleDateString(locale)}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex gap-2">
@@ -103,7 +112,7 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
                           href={`/dashboard/reviews/${review.id}/edit`}
                           className="text-blue-600 hover:text-blue-800"
                         >
-                          Edit
+                          {tReview("edit")}
                         </Link>
                         {review.status === ReviewStatus.Published ? (
                           <>
@@ -113,12 +122,12 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
                             )}
                           </>
                         ) : review.status === ReviewStatus.PendingReview ? (
-                          <span className="text-xs text-orange-600">Awaiting approval</span>
+                          <span className="text-xs text-orange-600">{t("awaitingApproval")}</span>
                         ) : (
                           <PublishButton reviewId={review.id} variant="link" />
                         )}
                         {review.status === ReviewStatus.Draft && (
-                          <DeleteButton reviewId={review.id} />
+                          <DeleteButton reviewId={review.id} label={t("delete")} />
                         )}
                       </div>
                     </td>
@@ -140,12 +149,13 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
   );
 }
 
-function DeleteButton({ reviewId }: { reviewId: string }) {
+function DeleteButton({ reviewId, label }: { reviewId: string; label: string }) {
   return (
-    <form action={`/dashboard/reviews/${reviewId}/delete`} method="GET">
-      <button type="submit" className="text-red-600 hover:text-red-800">
-        Delete
-      </button>
-    </form>
+    <Link
+      href={`/dashboard/reviews/${reviewId}/delete`}
+      className="text-red-600 hover:text-red-800"
+    >
+      {label}
+    </Link>
   );
 }

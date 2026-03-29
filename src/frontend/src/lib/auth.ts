@@ -3,7 +3,6 @@ import type { OIDCConfig } from "next-auth/providers";
 
 declare module "next-auth" {
   interface Session {
-    accessToken?: string;
     error?: string;
     isAdmin?: boolean;
   }
@@ -13,6 +12,7 @@ declare module "@auth/core/jwt" {
   interface JWT {
     accessToken?: string;
     refreshToken?: string;
+    idToken?: string;
     expiresAt?: number;
     error?: string;
     isAdmin?: boolean;
@@ -28,6 +28,7 @@ const keycloakProvider: OIDCConfig<Record<string, unknown>> = {
   name: "Keycloak",
   type: "oidc",
   clientId,
+  client: { token_endpoint_auth_method: "none" },
   // Issuer must match the "iss" claim in the token (external URL used by browser)
   issuer: keycloakExternal,
   // All server-to-server calls use the internal Docker URL
@@ -48,6 +49,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (account) {
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token;
+        token.idToken = account.id_token;
         token.expiresAt = account.expires_at;
         // Extract sub from access token to match backend's authorId
         if (account.access_token) {
@@ -111,7 +113,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return token;
     },
     async session({ session, token }) {
-      session.accessToken = token.accessToken;
+      // Never expose tokens to the client — only non-sensitive fields
       session.error = token.error;
       session.isAdmin = token.isAdmin ?? false;
       if (token.sub && session.user) {
@@ -146,3 +148,71 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     signIn: "/auth/signin",
   },
 });
+
+/**
+ * Read tokens from the encrypted NextAuth JWT cookie (server-side only).
+ * Tokens are never exposed to the client via the session object.
+ */
+export async function getServerTokens(): Promise<{
+  accessToken?: string;
+  idToken?: string;
+}> {
+  const { cookies: getCookies } = await import("next/headers");
+  const { decode } = await import("@auth/core/jwt");
+  const cookieStore = await getCookies();
+
+  // NextAuth v5 uses __Secure- prefix on HTTPS, plain name on HTTP.
+  // Try both to handle local Docker (NODE_ENV=production but HTTP).
+  const cookieNames = [
+    "__Secure-authjs.session-token",
+    "authjs.session-token",
+  ];
+
+  let sessionToken: string | undefined;
+  let cookieName = cookieNames[0];
+
+  for (const name of cookieNames) {
+    // Try single cookie first
+    sessionToken = cookieStore.get(name)?.value;
+    if (sessionToken) {
+      cookieName = name;
+      break;
+    }
+    // Try reassembling chunked cookies (cookieName.0, .1, etc.)
+    const chunks: string[] = [];
+    for (let i = 0; ; i++) {
+      const chunk = cookieStore.get(`${name}.${i}`)?.value;
+      if (!chunk) break;
+      chunks.push(chunk);
+    }
+    if (chunks.length > 0) {
+      sessionToken = chunks.join("");
+      cookieName = name;
+      break;
+    }
+  }
+
+  if (!sessionToken) return {};
+
+  try {
+    const decoded = await decode({
+      token: sessionToken,
+      salt: cookieName,
+      secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET!,
+    });
+
+    if (!decoded) return {};
+
+    return {
+      accessToken:
+        typeof decoded.accessToken === "string"
+          ? decoded.accessToken
+          : undefined,
+      idToken:
+        typeof decoded.idToken === "string" ? decoded.idToken : undefined,
+    };
+  } catch {
+    console.error("[auth] Failed to decode session token");
+    return {};
+  }
+}

@@ -30,6 +30,7 @@ export interface ReviewDto extends ReviewPublicDto {
   draftTitle: string | null;
   draftBody: string | null;
   draftQuotes: string[] | null;
+  draftCoverImageUrl: string | null;
   rejectionReason: string | null;
 }
 

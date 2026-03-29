@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { publishReview } from "@/lib/api";
+import { useRouter } from "@/i18n/navigation";
 
 interface PublishButtonProps {
   reviewId: string;
@@ -12,10 +13,12 @@ interface PublishButtonProps {
 
 export default function PublishButton({ reviewId, hasDraft, variant = "button" }: PublishButtonProps) {
   const router = useRouter();
+  const t = useTranslations("publish");
+  const tErrors = useTranslations("errors");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const label = hasDraft ? "Publish Draft" : "Publish";
+  const label = hasDraft ? t("publishDraft") : t("publish");
 
   async function handlePublish() {
     setError(null);
@@ -25,7 +28,7 @@ export default function PublishButton({ reviewId, hasDraft, variant = "button" }
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to publish review");
+      setError(err instanceof Error ? err.message : tErrors("failedToPublish"));
     } finally {
       setLoading(false);
     }
@@ -53,7 +56,7 @@ export default function PublishButton({ reviewId, hasDraft, variant = "button" }
         disabled={loading}
         className="shrink-0 rounded-md bg-gray-900 px-4 py-2 text-sm text-white hover:bg-gray-700 disabled:opacity-50"
       >
-        {loading ? "Publishing..." : label}
+        {loading ? t("publishing") : label}
       </button>
       {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
     </div>

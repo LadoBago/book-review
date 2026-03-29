@@ -61,7 +61,7 @@ services:
 
   azurite:
     image: mcr.microsoft.com/azure-storage/azurite
-    command: azurite-blob --blobHost 0.0.0.0 --blobPort 10000
+    command: azurite-blob --blobHost 0.0.0.0 --blobPort 10000 --skipApiVersionCheck
     ports:
       - "10000:10000"
 
@@ -87,6 +87,7 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=book_review;Username=${POSTGRES_USER:-bookreview};Password=${POSTGRES_PASSWORD:-bookreview_secret}"
       AzureStorage__ConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1"
+      AzureStorage__ExternalUrl: "http://localhost:10000/devstoreaccount1"
       Keycloak__Authority: "http://keycloak:8080/realms/book-review"
       Keycloak__ExternalAuthority: "http://localhost:8080/realms/book-review"
       Keycloak__Audience: "book-review-api"
@@ -109,6 +110,7 @@ services:
       API_INTERNAL_URL: "http://api:5000"
       NEXTAUTH_URL: "http://localhost:3000"
       NEXTAUTH_SECRET: "dev-secret-change-in-production"
+      AUTH_SECRET: "dev-secret-change-in-production"
       KEYCLOAK_ISSUER: "http://keycloak:8080/realms/book-review"
       KEYCLOAK_CLIENT_ID: "book-review-web"
       NEXT_PUBLIC_KEYCLOAK_URL: "http://localhost:8080/realms/book-review"

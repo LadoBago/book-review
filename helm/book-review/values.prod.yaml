@@ -1,22 +1,22 @@
 api:
-  replicaCount: 2
+  replicaCount: 1
   resources:
     requests:
-      cpu: 250m
-      memory: 512Mi
-    limits:
-      cpu: "1"
-      memory: 1Gi
-
-web:
-  replicaCount: 2
-  resources:
-    requests:
-      cpu: 200m
+      cpu: 100m
       memory: 256Mi
     limits:
       cpu: 500m
       memory: 512Mi
+
+web:
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi
 
 ingress:
   enabled: true
@@ -24,7 +24,9 @@ ingress:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
     nginx.ingress.kubernetes.io/proxy-body-size: 10m
-  host: bookreview.example.com
+    nginx.ingress.kubernetes.io/proxy-buffer-size: 16k
+    nginx.ingress.kubernetes.io/proxy-buffers-number: "4"
+  host: bookreview.ge
   tls:
     enabled: true
     secretName: book-review-tls

@@ -1,13 +1,15 @@
 "use client";
 
 import { useReducer } from "react";
-import { useRouter } from "next/navigation";
-import { createReview, updateReview, uploadCoverImage, discardDraft } from "@/lib/api";
+import { useSession } from "next-auth/react";
+import { useTranslations } from "next-intl";
+import { createReview, updateReview, uploadCoverImage, deleteCoverImage, discardDraft, publishReview } from "@/lib/api";
 import { ReviewDto, ReviewStatus } from "@/types/review";
 import MarkdownEditor from "./MarkdownEditor";
 import MarkdownPreview from "./MarkdownPreview";
 import CoverImageUpload from "./CoverImageUpload";
 import QuoteList from "./QuoteList";
+import { useRouter } from "@/i18n/navigation";
 
 interface ReviewFormProps {
   review?: ReviewDto;
@@ -21,6 +23,7 @@ interface FormState {
   showPreview: boolean;
   saving: boolean;
   uploading: boolean;
+  removing: boolean;
   discarding: boolean;
   error: string | null;
 }
@@ -30,7 +33,7 @@ type FormAction =
   | { type: "SET_QUOTES"; quotes: string[] }
   | { type: "SET_COVER_URL"; url: string | null }
   | { type: "TOGGLE_PREVIEW"; show: boolean }
-  | { type: "SET_LOADING"; operation: "saving" | "uploading" | "discarding"; loading: boolean }
+  | { type: "SET_LOADING"; operation: "saving" | "uploading" | "removing" | "discarding"; loading: boolean }
   | { type: "SET_ERROR"; error: string | null };
 
 function formReducer(state: FormState, action: FormAction): FormState {
@@ -58,10 +61,13 @@ function initFormState(review?: ReviewDto): FormState {
     quotes: hasDraft
       ? review?.draftQuotes || []
       : review?.quotes.map((q) => q.text) || [],
-    coverImageUrl: review?.coverImageUrl || null,
+    coverImageUrl: hasDraft
+      ? (review?.draftCoverImageUrl === "" ? null : review?.draftCoverImageUrl ?? review?.coverImageUrl ?? null)
+      : review?.coverImageUrl || null,
     showPreview: false,
     saving: false,
     uploading: false,
+    removing: false,
     discarding: false,
     error: null,
   };
@@ -69,12 +75,17 @@ function initFormState(review?: ReviewDto): FormState {
 
 export default function ReviewForm({ review }: ReviewFormProps) {
   const router = useRouter();
+  const { data: session } = useSession();
+  const t = useTranslations("editor");
+  const tPublish = useTranslations("publish");
+  const tErrors = useTranslations("errors");
   const isEditing = !!review;
   const isPublished = review?.status === ReviewStatus.Published;
   const hasDraft = review?.hasDraft ?? false;
+  const isAdmin = session?.isAdmin ?? false;
 
   const [state, dispatch] = useReducer(formReducer, review, initFormState);
-  const { title, body, quotes, coverImageUrl, showPreview, saving, uploading, discarding, error } = state;
+  const { title, body, quotes, coverImageUrl, showPreview, saving, uploading, removing, discarding, error } = state;
 
   async function handleSave(status: ReviewStatus) {
     dispatch({ type: "SET_LOADING", operation: "saving", loading: true });
@@ -88,7 +99,28 @@ export default function ReviewForm({ review }: ReviewFormProps) {
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
-      dispatch({ type: "SET_ERROR", error: err instanceof Error ? err.message : "Failed to save review" });
+      dispatch({ type: "SET_ERROR", error: err instanceof Error ? err.message : tErrors("failedToSave") });
+    } finally {
+      dispatch({ type: "SET_LOADING", operation: "saving", loading: false });
+    }
+  }
+
+  async function handlePublishDirect() {
+    dispatch({ type: "SET_LOADING", operation: "saving", loading: true });
+    try {
+      const filteredQuotes = quotes.filter((q) => q.trim() !== "");
+      let reviewId = review?.id;
+      if (isEditing) {
+        await updateReview(review.id, { title, body, status: ReviewStatus.Draft, quotes: filteredQuotes });
+      } else {
+        const created = await createReview({ title, body, status: ReviewStatus.Draft, quotes: filteredQuotes });
+        reviewId = created.id;
+      }
+      await publishReview(reviewId!);
+      router.push("/dashboard");
+      router.refresh();
+    } catch (err) {
+      dispatch({ type: "SET_ERROR", error: err instanceof Error ? err.message : tErrors("failedToPublish") });
     } finally {
       dispatch({ type: "SET_LOADING", operation: "saving", loading: false });
     }
@@ -102,7 +134,7 @@ export default function ReviewForm({ review }: ReviewFormProps) {
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
-      dispatch({ type: "SET_ERROR", error: err instanceof Error ? err.message : "Failed to discard draft" });
+      dispatch({ type: "SET_ERROR", error: err instanceof Error ? err.message : tErrors("failedToDiscard") });
     } finally {
       dispatch({ type: "SET_LOADING", operation: "discarding", loading: false });
     }
@@ -110,17 +142,33 @@ export default function ReviewForm({ review }: ReviewFormProps) {
 
   async function handleImageUpload(file: File) {
     if (!isEditing) {
-      dispatch({ type: "SET_ERROR", error: "Please save the review as a draft first before uploading an image." });
+      dispatch({ type: "SET_ERROR", error: t("saveFirstError") });
       return;
     }
     dispatch({ type: "SET_LOADING", operation: "uploading", loading: true });
     try {
       const updated = await uploadCoverImage(review.id, file);
-      dispatch({ type: "SET_COVER_URL", url: updated.coverImageUrl });
+      const url = updated.draftCoverImageUrl != null && updated.draftCoverImageUrl !== ""
+        ? updated.draftCoverImageUrl
+        : updated.coverImageUrl;
+      dispatch({ type: "SET_COVER_URL", url });
     } catch (err) {
-      dispatch({ type: "SET_ERROR", error: err instanceof Error ? err.message : "Failed to upload image" });
+      dispatch({ type: "SET_ERROR", error: err instanceof Error ? err.message : tErrors("failedToUpload") });
     } finally {
       dispatch({ type: "SET_LOADING", operation: "uploading", loading: false });
+    }
+  }
+
+  async function handleImageRemove() {
+    if (!isEditing) return;
+    dispatch({ type: "SET_LOADING", operation: "removing", loading: true });
+    try {
+      await deleteCoverImage(review.id);
+      dispatch({ type: "SET_COVER_URL", url: null });
+    } catch (err) {
+      dispatch({ type: "SET_ERROR", error: err instanceof Error ? err.message : tErrors("failedToRemoveImage") });
+    } finally {
+      dispatch({ type: "SET_LOADING", operation: "removing", loading: false });
     }
   }
 
@@ -128,15 +176,13 @@ export default function ReviewForm({ review }: ReviewFormProps) {
     <div className="space-y-6">
       {isPublished && (
         <div className="rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
-          {hasDraft
-            ? "You are editing a draft revision. The published version remains live until you publish this draft."
-            : "This review is published. Saving as draft will create a separate draft revision without affecting the live version."}
+          {hasDraft ? t("publishedHasDraft") : t("publishedNoDraft")}
         </div>
       )}
 
       {review?.rejectionReason && (
         <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          <strong>Rejected:</strong> {review.rejectionReason}
+          <strong>{t("rejectedLabel")}</strong> {review.rejectionReason}
         </div>
       )}
 
@@ -148,22 +194,27 @@ export default function ReviewForm({ review }: ReviewFormProps) {
 
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700">
-          Title
+          {t("titleLabel")}
         </label>
         <input
           type="text"
           value={title}
           onChange={(e) => dispatch({ type: "SET_FIELD", field: "title", value: e.target.value })}
-          placeholder="Book title or review title"
+          placeholder={t("titlePlaceholder")}
           maxLength={200}
           className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         />
+        {title.length > 0 && title.trim().length < 3 && (
+          <p className="mt-1 text-xs text-amber-600">{t("titleHint")}</p>
+        )}
       </div>
 
       <CoverImageUpload
         currentUrl={coverImageUrl}
         onUpload={handleImageUpload}
+        onRemove={isEditing ? handleImageRemove : undefined}
         uploading={uploading}
+        removing={removing}
       />
 
       <div className="flex gap-2 border-b border-gray-200">
@@ -176,7 +227,7 @@ export default function ReviewForm({ review }: ReviewFormProps) {
               : "text-gray-500 hover:text-gray-700"
           }`}
         >
-          Write
+          {t("write")}
         </button>
         <button
           type="button"
@@ -187,7 +238,7 @@ export default function ReviewForm({ review }: ReviewFormProps) {
               : "text-gray-500 hover:text-gray-700"
           }`}
         >
-          Preview
+          {t("preview")}
         </button>
       </div>
 
@@ -196,11 +247,14 @@ export default function ReviewForm({ review }: ReviewFormProps) {
           {body ? (
             <MarkdownPreview content={body} />
           ) : (
-            <p className="text-gray-400">Nothing to preview</p>
+            <p className="text-gray-400">{t("nothingToPreview")}</p>
           )}
         </div>
       ) : (
         <MarkdownEditor value={body} onChange={(v) => dispatch({ type: "SET_FIELD", field: "body", value: v })} />
+      )}
+      {body.length > 0 && body.trim().length < 10 && (
+        <p className="text-xs text-amber-600">{t("bodyHint")}</p>
       )}
 
       <QuoteList quotes={quotes} onChange={(q) => dispatch({ type: "SET_QUOTES", quotes: q })} />
@@ -209,19 +263,30 @@ export default function ReviewForm({ review }: ReviewFormProps) {
         <button
           type="button"
           onClick={() => handleSave(ReviewStatus.Draft)}
-          disabled={saving || !title.trim() || !body.trim()}
+          disabled={saving || title.trim().length < 3 || body.trim().length < 10}
           className="rounded-md border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50 disabled:opacity-50"
         >
-          {saving ? "Saving..." : isPublished ? "Save Draft Revision" : "Save Draft"}
+          {saving ? t("saving") : isPublished ? t("saveDraftRevision") : t("saveDraft")}
         </button>
-        <button
-          type="button"
-          onClick={() => handleSave(ReviewStatus.Published)}
-          disabled={saving || !title.trim() || !body.trim()}
-          className="rounded-md bg-gray-900 px-4 py-2 text-sm text-white hover:bg-gray-700 disabled:opacity-50"
-        >
-          {saving ? "Submitting..." : "Submit for Review"}
-        </button>
+        {isAdmin ? (
+          <button
+            type="button"
+            onClick={handlePublishDirect}
+            disabled={saving || title.trim().length < 3 || body.trim().length < 10}
+            className="rounded-md bg-green-700 px-4 py-2 text-sm text-white hover:bg-green-800 disabled:opacity-50"
+          >
+            {saving ? tPublish("publishing") : tPublish("publish")}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => handleSave(ReviewStatus.Published)}
+            disabled={saving || title.trim().length < 3 || body.trim().length < 10}
+            className="rounded-md bg-gray-900 px-4 py-2 text-sm text-white hover:bg-gray-700 disabled:opacity-50"
+          >
+            {saving ? t("submitting") : t("submitForReview")}
+          </button>
+        )}
         {hasDraft && (
           <button
             type="button"
@@ -229,7 +294,7 @@ export default function ReviewForm({ review }: ReviewFormProps) {
             disabled={discarding}
             className="text-sm text-red-600 hover:text-red-800 disabled:opacity-50"
           >
-            {discarding ? "Discarding..." : "Discard Draft"}
+            {discarding ? t("discarding") : t("discardDraft")}
           </button>
         )}
         <button
@@ -237,7 +302,7 @@ export default function ReviewForm({ review }: ReviewFormProps) {
           onClick={() => router.back()}
           className="text-sm text-gray-500 hover:text-gray-700"
         >
-          Cancel
+          {t("cancel")}
         </button>
       </div>
     </div>

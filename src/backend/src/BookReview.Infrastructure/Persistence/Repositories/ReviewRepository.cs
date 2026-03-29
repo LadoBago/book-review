@@ -61,6 +61,28 @@ public class ReviewRepository : IReviewRepository
         return (items, totalCount);
     }
 
+    public async Task<(IReadOnlyList<Review> Items, int TotalCount)> GetPendingModerationAsync(
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        // Reviews pending moderation: PendingReview status OR Published with a draft (not already rejected)
+        var query = _context.Reviews
+            .Include(r => r.Quotes.OrderBy(q => q.SortOrder))
+            .Where(r => r.Status == ReviewStatus.PendingReview
+                || (r.Status == ReviewStatus.Published && r.DraftTitle != null && r.RejectionReason == null));
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderByDescending(r => r.UpdatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
+    }
+
     public async Task AddAsync(Review review, CancellationToken cancellationToken = default)
     {
         await _context.Reviews.AddAsync(review, cancellationToken);

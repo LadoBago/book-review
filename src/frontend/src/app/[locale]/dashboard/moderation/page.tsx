@@ -1,23 +1,30 @@
-import Link from "next/link";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { auth } from "@/lib/auth";
 import { getPendingReviews } from "@/lib/api";
 import { redirect } from "next/navigation";
 import Pagination from "@/components/Pagination";
 import ModerationActions from "@/components/ModerationActions";
+import { Link } from "@/i18n/navigation";
 
 interface ModerationProps {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{ page?: string }>;
 }
 
-export default async function ModerationPage({ searchParams }: ModerationProps) {
+export default async function ModerationPage({ params, searchParams }: ModerationProps) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const session = await auth();
 
   if (!session?.isAdmin) {
-    redirect("/dashboard");
+    redirect(`/${locale}/dashboard`);
   }
 
-  const params = await searchParams;
-  const page = Number(params.page) || 1;
+  const t = await getTranslations("moderation");
+  const tReview = await getTranslations("review");
+
+  const sp = await searchParams;
+  const page = Number(sp.page) || 1;
 
   let reviews;
   try {
@@ -29,18 +36,18 @@ export default async function ModerationPage({ searchParams }: ModerationProps) 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Moderation Queue</h1>
+        <h1 className="text-3xl font-bold">{t("title")}</h1>
         <Link
           href="/dashboard"
           className="text-sm text-gray-600 hover:text-gray-900"
         >
-          Back to Dashboard
+          {t("backToDashboard")}
         </Link>
       </div>
 
       {!reviews || reviews.items.length === 0 ? (
         <div className="rounded-lg border border-gray-200 bg-white py-12 text-center text-gray-500">
-          No reviews pending approval.
+          {t("noReviews")}
         </div>
       ) : (
         <>
@@ -59,8 +66,8 @@ export default async function ModerationPage({ searchParams }: ModerationProps) 
                       {review.title}
                     </Link>
                     <p className="mt-1 text-sm text-gray-500">
-                      by {review.authorName} &middot;{" "}
-                      {new Date(review.createdAt).toLocaleDateString()}
+                      {tReview("by", { author: review.authorName })} &middot;{" "}
+                      {new Date(review.createdAt).toLocaleDateString(locale)}
                     </p>
                   </div>
                   <ModerationActions reviewId={review.id} />

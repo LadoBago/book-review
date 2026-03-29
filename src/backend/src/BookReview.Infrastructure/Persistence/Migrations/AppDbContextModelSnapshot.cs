@@ -78,6 +78,10 @@ namespace BookReview.Infrastructure.Persistence.Migrations
                     b.Property<string>("DraftBody")
                         .HasColumnType("text");
 
+                    b.Property<string>("DraftCoverImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.PrimitiveCollection<string>("DraftQuotes")
                         .HasColumnType("jsonb");
 
