@@ -78,6 +78,8 @@ jobs:
             --set secrets.dbConnectionString="${{ secrets.DB_CONNECTION_STRING }}" \
             --set secrets.azureStorageConnectionString="${{ secrets.AZURE_STORAGE_CONNECTION }}" \
             --set secrets.keycloakAuthority="${{ secrets.KEYCLOAK_AUTHORITY }}" \
+            --set secrets.keycloakExternalAuthority="${{ secrets.KEYCLOAK_EXTERNAL_AUTHORITY }}" \
+            --set-string secrets.keycloakRequireHttpsMetadata="true" \
             --set secrets.keycloakIssuer="${{ secrets.KEYCLOAK_ISSUER }}" \
             --set secrets.nextauthSecret="${{ secrets.NEXTAUTH_SECRET }}" \
             --wait --timeout 5m
