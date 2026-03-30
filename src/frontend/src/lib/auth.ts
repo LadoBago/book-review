@@ -5,6 +5,7 @@ declare module "next-auth" {
   interface Session {
     error?: string;
     isAdmin?: boolean;
+    isSocialLogin?: boolean;
   }
 }
 
@@ -16,6 +17,7 @@ declare module "@auth/core/jwt" {
     expiresAt?: number;
     error?: string;
     isAdmin?: boolean;
+    isSocialLogin?: boolean;
   }
 }
 
@@ -66,6 +68,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               }
               const roles = payload.realm_access?.roles as string[] | undefined;
               token.isAdmin = roles?.includes("admin") ?? false;
+              token.isSocialLogin = !!payload.identity_provider;
             }
           } catch (e) {
             console.error("[auth] Failed to decode access_token:", e);
@@ -116,6 +119,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       // Never expose tokens to the client — only non-sensitive fields
       session.error = token.error;
       session.isAdmin = token.isAdmin ?? false;
+      session.isSocialLogin = token.isSocialLogin ?? false;
       if (token.sub && session.user) {
         session.user.id = token.sub;
       }
