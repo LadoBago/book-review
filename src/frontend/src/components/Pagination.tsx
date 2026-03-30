@@ -57,7 +57,7 @@ export default function Pagination({
               href={buildHref(page)}
               className={`rounded-md px-3 py-2 text-sm ${
                 page === currentPage
-                  ? "bg-gray-900 text-white"
+                  ? "bg-orange-400 text-white"
                   : "border border-gray-300 hover:bg-gray-50"
               }`}
             >

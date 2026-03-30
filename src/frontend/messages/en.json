@@ -177,6 +177,13 @@
       }
     }
   },
+  "footer": {
+    "copyright": "\u00a9 {year} Book Review. All rights reserved.",
+    "about": "About"
+  },
+  "about": {
+    "title": "About"
+  },
   "locale": {
     "en": "English",
     "ka": "\u10e5\u10d0\u10e0\u10d7\u10e3\u10da\u10d8"

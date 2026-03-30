@@ -33,7 +33,7 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
         <h1 className="text-3xl font-bold">{t("title")}</h1>
         <Link
           href="/dashboard/reviews/new"
-          className="rounded-md bg-gray-900 px-4 py-2 text-sm text-white hover:bg-gray-700"
+          className="rounded-md bg-orange-400 px-4 py-2 text-sm text-white hover:bg-orange-500"
         >
           {t("newReview")}
         </Link>
@@ -71,7 +71,7 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
                             ? `/reviews/${review.slug}`
                             : `/dashboard/reviews/${review.id}/edit`
                         }
-                        className="font-medium text-gray-900 hover:text-blue-600"
+                        className="font-medium text-gray-900 hover:text-orange-600"
                       >
                         {review.title}
                       </Link>
@@ -93,7 +93,7 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
                             : t("statusDraft")}
                       </span>
                       {review.hasDraft && (
-                        <span className="ml-1 inline-block rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700">
+                        <span className="ml-1 inline-block rounded-full bg-orange-100 px-2 py-1 text-xs font-medium text-orange-700">
                           {t("draftPending")}
                         </span>
                       )}
@@ -110,7 +110,7 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
                       <div className="flex gap-2">
                         <Link
                           href={`/dashboard/reviews/${review.id}/edit`}
-                          className="text-blue-600 hover:text-blue-800"
+                          className="text-orange-600 hover:text-orange-800"
                         >
                           {tReview("edit")}
                         </Link>

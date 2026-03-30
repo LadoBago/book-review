@@ -87,7 +87,7 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=book_review;Username=${POSTGRES_USER:-bookreview};Password=${POSTGRES_PASSWORD:-bookreview_secret}"
       AzureStorage__ConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1"
-      AzureStorage__ExternalUrl: "http://localhost:10000/devstoreaccount1"
+      # AzureStorage__ExternalUrl no longer needed — images served via /api/images proxy
       Keycloak__Authority: "http://keycloak:8080/realms/book-review"
       Keycloak__ExternalAuthority: "http://localhost:8080/realms/book-review"
       Keycloak__Audience: "book-review-api"
@@ -99,6 +99,8 @@ services:
       postgres:
         condition: service_healthy
       keycloak:
+        condition: service_started
+      azurite:
         condition: service_started
 
   web:

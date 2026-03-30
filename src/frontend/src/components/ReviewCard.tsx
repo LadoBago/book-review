@@ -35,7 +35,7 @@ export default function ReviewCard({ review }: ReviewCardProps) {
         </div>
       )}
       <div className="p-4">
-        <h2 className="line-clamp-2 text-lg font-semibold text-gray-900 group-hover:text-blue-600">
+        <h2 className="line-clamp-2 text-lg font-semibold text-gray-900 group-hover:text-orange-600">
           {review.title}
         </h2>
         <div className="mt-2 flex items-center justify-between text-sm text-gray-500">

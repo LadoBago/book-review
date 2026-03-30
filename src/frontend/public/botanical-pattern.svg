@@ -1,0 +1,204 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
+  <defs>
+    <style>
+      .fern { fill: none; stroke: #c8d4a8; stroke-width: 1.5; stroke-linecap: round; }
+      .leaf { fill: #d4ddb8; opacity: 0.5; }
+      .petal { fill: #f0dca0; opacity: 0.4; }
+      .petal-light { fill: #f5e6bb; opacity: 0.35; }
+      .center { fill: #e0c878; opacity: 0.45; }
+      .stem { fill: none; stroke: #c8d4a8; stroke-width: 1.2; stroke-linecap: round; }
+    </style>
+  </defs>
+
+  <!-- Fern 1 - top left -->
+  <g transform="translate(80, 120) rotate(-25)">
+    <path class="fern" d="M0,0 C10,-30 20,-60 15,-100"/>
+    <path class="leaf" d="M5,-20 C15,-30 20,-25 12,-15Z"/>
+    <path class="leaf" d="M-3,-25 C-14,-35 -18,-28 -10,-18Z"/>
+    <path class="leaf" d="M8,-40 C18,-52 24,-46 14,-35Z"/>
+    <path class="leaf" d="M-2,-45 C-13,-55 -18,-48 -8,-38Z"/>
+    <path class="leaf" d="M10,-58 C20,-70 26,-64 16,-53Z"/>
+    <path class="leaf" d="M-1,-63 C-12,-73 -17,-66 -7,-56Z"/>
+    <path class="leaf" d="M12,-76 C20,-86 25,-80 17,-72Z"/>
+    <path class="leaf" d="M0,-80 C-10,-90 -14,-84 -6,-75Z"/>
+  </g>
+
+  <!-- Fern 2 - top right -->
+  <g transform="translate(480, 80) rotate(15)">
+    <path class="fern" d="M0,0 C8,-25 16,-50 12,-85"/>
+    <path class="leaf" d="M4,-18 C13,-27 17,-22 10,-13Z"/>
+    <path class="leaf" d="M-2,-22 C-12,-30 -15,-24 -8,-16Z"/>
+    <path class="leaf" d="M6,-35 C15,-45 20,-40 12,-30Z"/>
+    <path class="leaf" d="M-1,-38 C-11,-48 -15,-42 -7,-33Z"/>
+    <path class="leaf" d="M8,-52 C16,-62 20,-56 13,-47Z"/>
+    <path class="leaf" d="M0,-55 C-10,-64 -14,-58 -6,-50Z"/>
+    <path class="leaf" d="M9,-68 C16,-76 19,-71 13,-64Z"/>
+  </g>
+
+  <!-- Fern 3 - center left -->
+  <g transform="translate(50, 350) rotate(-10)">
+    <path class="fern" d="M0,0 C8,-22 14,-45 10,-78"/>
+    <path class="leaf" d="M4,-16 C12,-25 16,-20 9,-12Z"/>
+    <path class="leaf" d="M-2,-20 C-11,-28 -14,-22 -7,-15Z"/>
+    <path class="leaf" d="M6,-32 C14,-42 18,-37 11,-28Z"/>
+    <path class="leaf" d="M-1,-36 C-10,-44 -13,-38 -6,-31Z"/>
+    <path class="leaf" d="M7,-48 C14,-56 17,-51 11,-44Z"/>
+    <path class="leaf" d="M0,-52 C-8,-60 -12,-54 -5,-47Z"/>
+    <path class="leaf" d="M8,-62 C14,-70 17,-65 11,-58Z"/>
+  </g>
+
+  <!-- Fern 4 - bottom right -->
+  <g transform="translate(500, 480) rotate(150)">
+    <path class="fern" d="M0,0 C8,-25 16,-50 12,-85"/>
+    <path class="leaf" d="M4,-18 C13,-27 17,-22 10,-13Z"/>
+    <path class="leaf" d="M-2,-22 C-12,-30 -15,-24 -8,-16Z"/>
+    <path class="leaf" d="M6,-35 C15,-45 20,-40 12,-30Z"/>
+    <path class="leaf" d="M-1,-38 C-11,-48 -15,-42 -7,-33Z"/>
+    <path class="leaf" d="M8,-52 C16,-62 20,-56 13,-47Z"/>
+    <path class="leaf" d="M0,-55 C-10,-64 -14,-58 -6,-50Z"/>
+    <path class="leaf" d="M9,-68 C16,-76 19,-71 13,-64Z"/>
+  </g>
+
+  <!-- Fern 5 - center -->
+  <g transform="translate(290, 320) rotate(10) scale(0.7)">
+    <path class="fern" d="M0,0 C6,-20 14,-45 10,-75"/>
+    <path class="leaf" d="M4,-15 C12,-23 15,-18 9,-11Z"/>
+    <path class="leaf" d="M-2,-18 C-10,-26 -14,-20 -7,-13Z"/>
+    <path class="leaf" d="M6,-30 C13,-40 17,-35 10,-26Z"/>
+    <path class="leaf" d="M-1,-34 C-9,-42 -13,-37 -6,-29Z"/>
+    <path class="leaf" d="M7,-46 C13,-54 16,-49 11,-42Z"/>
+    <path class="leaf" d="M0,-49 C-8,-57 -11,-52 -5,-45Z"/>
+  </g>
+
+  <!-- Fern 6 - bottom left -->
+  <g transform="translate(160, 540) rotate(-35) scale(0.8)">
+    <path class="fern" d="M0,0 C8,-22 15,-48 11,-80"/>
+    <path class="leaf" d="M4,-16 C12,-25 16,-20 9,-12Z"/>
+    <path class="leaf" d="M-2,-20 C-11,-28 -14,-22 -7,-15Z"/>
+    <path class="leaf" d="M6,-33 C14,-43 18,-38 11,-29Z"/>
+    <path class="leaf" d="M-1,-37 C-10,-45 -13,-39 -6,-32Z"/>
+    <path class="leaf" d="M7,-50 C14,-58 17,-53 11,-46Z"/>
+    <path class="leaf" d="M0,-54 C-8,-62 -12,-56 -5,-49Z"/>
+  </g>
+
+  <!-- Fern 7 - right edge middle -->
+  <g transform="translate(560, 280) rotate(170) scale(0.75)">
+    <path class="fern" d="M0,0 C7,-20 13,-42 10,-70"/>
+    <path class="leaf" d="M4,-14 C11,-22 14,-17 8,-10Z"/>
+    <path class="leaf" d="M-2,-18 C-10,-26 -13,-20 -6,-13Z"/>
+    <path class="leaf" d="M5,-28 C12,-37 15,-32 9,-24Z"/>
+    <path class="leaf" d="M-1,-32 C-9,-40 -12,-35 -5,-27Z"/>
+    <path class="leaf" d="M6,-42 C12,-50 15,-45 10,-39Z"/>
+    <path class="leaf" d="M0,-46 C-7,-53 -10,-48 -4,-42Z"/>
+  </g>
+
+  <!-- Daffodil 1 - center right -->
+  <g transform="translate(420, 170)">
+    <path class="stem" d="M0,30 C-5,15 3,5 0,-5"/>
+    <ellipse class="petal" cx="0" cy="-18" rx="8" ry="14" transform="rotate(0)"/>
+    <ellipse class="petal" cx="0" cy="-18" rx="8" ry="14" transform="rotate(60)"/>
+    <ellipse class="petal" cx="0" cy="-18" rx="8" ry="14" transform="rotate(120)"/>
+    <ellipse class="petal" cx="0" cy="-18" rx="8" ry="14" transform="rotate(180)"/>
+    <ellipse class="petal" cx="0" cy="-18" rx="8" ry="14" transform="rotate(240)"/>
+    <ellipse class="petal" cx="0" cy="-18" rx="8" ry="14" transform="rotate(300)"/>
+    <circle class="center" cx="0" cy="0" r="6"/>
+    <path class="leaf" d="M5,30 C12,50 8,65 0,55 C-8,65 -12,50 -5,30Z"/>
+  </g>
+
+  <!-- Daffodil 2 - bottom left -->
+  <g transform="translate(130, 430) scale(0.85)">
+    <path class="stem" d="M0,35 C-3,18 5,8 0,-3"/>
+    <ellipse class="petal-light" cx="0" cy="-16" rx="7" ry="13" transform="rotate(15)"/>
+    <ellipse class="petal-light" cx="0" cy="-16" rx="7" ry="13" transform="rotate(75)"/>
+    <ellipse class="petal-light" cx="0" cy="-16" rx="7" ry="13" transform="rotate(135)"/>
+    <ellipse class="petal-light" cx="0" cy="-16" rx="7" ry="13" transform="rotate(195)"/>
+    <ellipse class="petal-light" cx="0" cy="-16" rx="7" ry="13" transform="rotate(255)"/>
+    <ellipse class="petal-light" cx="0" cy="-16" rx="7" ry="13" transform="rotate(315)"/>
+    <circle class="center" cx="0" cy="0" r="5"/>
+    <path class="leaf" d="M4,35 C10,52 7,62 0,53 C-7,62 -10,52 -4,35Z"/>
+  </g>
+
+  <!-- Daffodil 3 - top center -->
+  <g transform="translate(280, 60) scale(0.75)">
+    <path class="stem" d="M0,28 C-4,14 3,5 0,-3"/>
+    <ellipse class="petal" cx="0" cy="-16" rx="7" ry="12" transform="rotate(10)"/>
+    <ellipse class="petal" cx="0" cy="-16" rx="7" ry="12" transform="rotate(70)"/>
+    <ellipse class="petal" cx="0" cy="-16" rx="7" ry="12" transform="rotate(130)"/>
+    <ellipse class="petal" cx="0" cy="-16" rx="7" ry="12" transform="rotate(190)"/>
+    <ellipse class="petal" cx="0" cy="-16" rx="7" ry="12" transform="rotate(250)"/>
+    <ellipse class="petal" cx="0" cy="-16" rx="7" ry="12" transform="rotate(310)"/>
+    <circle class="center" cx="0" cy="0" r="5"/>
+    <path class="leaf" d="M4,28 C9,42 6,52 0,44 C-6,52 -9,42 -4,28Z"/>
+  </g>
+
+  <!-- Daffodil 4 - right middle -->
+  <g transform="translate(540, 390) scale(0.65) rotate(-15)">
+    <path class="stem" d="M0,25 C-3,12 2,4 0,-2"/>
+    <ellipse class="petal-light" cx="0" cy="-14" rx="6" ry="11" transform="rotate(5)"/>
+    <ellipse class="petal-light" cx="0" cy="-14" rx="6" ry="11" transform="rotate(65)"/>
+    <ellipse class="petal-light" cx="0" cy="-14" rx="6" ry="11" transform="rotate(125)"/>
+    <ellipse class="petal-light" cx="0" cy="-14" rx="6" ry="11" transform="rotate(185)"/>
+    <ellipse class="petal-light" cx="0" cy="-14" rx="6" ry="11" transform="rotate(245)"/>
+    <ellipse class="petal-light" cx="0" cy="-14" rx="6" ry="11" transform="rotate(305)"/>
+    <circle class="center" cx="0" cy="0" r="4"/>
+  </g>
+
+  <!-- Daffodil 5 - left edge -->
+  <g transform="translate(30, 200) scale(0.6) rotate(20)">
+    <path class="stem" d="M0,22 C-3,11 2,3 0,-1"/>
+    <ellipse class="petal" cx="0" cy="-13" rx="6" ry="10" transform="rotate(0)"/>
+    <ellipse class="petal" cx="0" cy="-13" rx="6" ry="10" transform="rotate(72)"/>
+    <ellipse class="petal" cx="0" cy="-13" rx="6" ry="10" transform="rotate(144)"/>
+    <ellipse class="petal" cx="0" cy="-13" rx="6" ry="10" transform="rotate(216)"/>
+    <ellipse class="petal" cx="0" cy="-13" rx="6" ry="10" transform="rotate(288)"/>
+    <circle class="center" cx="0" cy="0" r="4"/>
+  </g>
+
+  <!-- Daffodil 6 - bottom center -->
+  <g transform="translate(350, 530) scale(0.7)">
+    <path class="stem" d="M0,26 C-4,13 3,4 0,-2"/>
+    <ellipse class="petal" cx="0" cy="-15" rx="7" ry="12" transform="rotate(30)"/>
+    <ellipse class="petal" cx="0" cy="-15" rx="7" ry="12" transform="rotate(90)"/>
+    <ellipse class="petal" cx="0" cy="-15" rx="7" ry="12" transform="rotate(150)"/>
+    <ellipse class="petal" cx="0" cy="-15" rx="7" ry="12" transform="rotate(210)"/>
+    <ellipse class="petal" cx="0" cy="-15" rx="7" ry="12" transform="rotate(270)"/>
+    <ellipse class="petal" cx="0" cy="-15" rx="7" ry="12" transform="rotate(330)"/>
+    <circle class="center" cx="0" cy="0" r="5"/>
+    <path class="leaf" d="M4,26 C9,40 6,48 0,41 C-6,48 -9,40 -4,26Z"/>
+  </g>
+
+  <!-- Daffodil 7 - center area -->
+  <g transform="translate(220, 240) scale(0.55)">
+    <path class="stem" d="M0,20 C-2,10 2,3 0,-2"/>
+    <ellipse class="petal-light" cx="0" cy="-12" rx="6" ry="10" transform="rotate(0)"/>
+    <ellipse class="petal-light" cx="0" cy="-12" rx="6" ry="10" transform="rotate(72)"/>
+    <ellipse class="petal-light" cx="0" cy="-12" rx="6" ry="10" transform="rotate(144)"/>
+    <ellipse class="petal-light" cx="0" cy="-12" rx="6" ry="10" transform="rotate(216)"/>
+    <ellipse class="petal-light" cx="0" cy="-12" rx="6" ry="10" transform="rotate(288)"/>
+    <circle class="center" cx="0" cy="0" r="4"/>
+  </g>
+
+  <!-- Scattered leaves - more of them -->
+  <path class="leaf" d="M350,80 C358,68 364,72 356,82Z"/>
+  <path class="leaf" d="M200,260 C208,248 214,252 206,262Z"/>
+  <path class="leaf" d="M420,350 C428,338 434,342 426,352Z"/>
+  <path class="leaf" d="M70,380 C78,368 84,372 76,382Z"/>
+  <path class="leaf" d="M530,260 C538,248 544,252 536,262Z"/>
+  <path class="leaf" d="M320,540 C328,528 334,532 326,542Z"/>
+  <path class="leaf" d="M180,100 C188,88 194,92 186,102Z"/>
+  <path class="leaf" d="M480,520 C488,508 494,512 486,522Z"/>
+  <path class="leaf" d="M110,170 C118,158 124,162 116,172Z"/>
+  <path class="leaf" d="M370,290 C378,278 384,282 376,292Z"/>
+  <path class="leaf" d="M250,470 C258,458 264,462 256,472Z"/>
+  <path class="leaf" d="M560,140 C568,128 574,132 566,142Z"/>
+  <path class="leaf" d="M40,500 C48,488 54,492 46,502Z"/>
+  <path class="leaf" d="M450,450 C458,438 464,442 456,452Z"/>
+  <path class="leaf" d="M190,380 C198,368 204,372 196,382Z"/>
+  <path class="leaf" d="M520,50 C528,38 534,42 526,52Z"/>
+  <path class="leaf" d="M340,180 C348,168 354,172 346,182Z"/>
+  <path class="leaf" d="M90,50 C98,38 104,42 96,52Z"/>
+  <path class="leaf" d="M470,240 C478,228 484,232 476,242Z"/>
+  <path class="leaf" d="M260,130 C268,118 274,122 266,132Z"/>
+  <path class="leaf" d="M580,530 C588,518 594,522 586,532Z"/>
+  <path class="leaf" d="M150,310 C158,298 164,302 156,312Z"/>
+</svg>

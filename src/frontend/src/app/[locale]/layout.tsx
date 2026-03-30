@@ -7,6 +7,7 @@ import { Locale } from "@/i18n/config";
 import SessionProvider from "@/components/SessionProvider";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 interface LocaleLayoutProps {
   children: React.ReactNode;
@@ -61,12 +62,13 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale} suppressHydrationWarning>
-      <body className="min-h-screen bg-gray-50 text-gray-900 antialiased">
+      <body className="flex min-h-screen flex-col bg-gray-50 text-gray-900 antialiased">
         <NextIntlClientProvider messages={messages}>
           <SessionProvider>
             <ErrorBoundary>
               <Navbar />
-              <main>{children}</main>
+              <main className="flex-1">{children}</main>
+              <Footer />
             </ErrorBoundary>
           </SessionProvider>
         </NextIntlClientProvider>
