@@ -49,7 +49,7 @@ export default async function Home({ params, searchParams }: HomeProps) {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <div className="mb-8">
-        <h1 className="mb-4 text-3xl font-bold">{t("title")}</h1>
+        <h1 className="mb-4 text-3xl font-bold text-green-900">{t("title")}</h1>
         <Suspense fallback={null}>
           <SearchBar />
         </Suspense>

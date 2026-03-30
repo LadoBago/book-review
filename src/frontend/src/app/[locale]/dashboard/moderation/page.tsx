@@ -61,7 +61,7 @@ export default async function ModerationPage({ params, searchParams }: Moderatio
                   <div>
                     <Link
                       href={`/dashboard/moderation/${review.id}`}
-                      className="text-lg font-medium text-gray-900 hover:text-blue-600"
+                      className="text-lg font-medium text-gray-900 hover:text-orange-600"
                     >
                       {review.title}
                     </Link>

@@ -142,7 +142,7 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
             {review.quotes.map((quote) => (
               <blockquote
                 key={quote.id}
-                className="border-l-4 border-blue-500 bg-blue-50 py-3 pl-4 pr-4 text-gray-700 italic"
+                className="border-l-4 border-orange-400 bg-orange-50 py-3 pl-4 pr-4 text-gray-700 italic"
               >
                 &ldquo;{quote.text}&rdquo;
               </blockquote>

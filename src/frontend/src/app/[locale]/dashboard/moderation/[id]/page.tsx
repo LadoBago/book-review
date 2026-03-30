@@ -96,7 +96,7 @@ export default async function ModerationDetailPage({ params }: ModerationDetailP
               {displayQuotes.map((quote, index) => (
                 <blockquote
                   key={index}
-                  className="border-l-4 border-blue-500 bg-blue-50 py-3 pl-4 pr-4 text-gray-700 italic"
+                  className="border-l-4 border-orange-400 bg-orange-50 py-3 pl-4 pr-4 text-gray-700 italic"
                 >
                   &ldquo;{quote}&rdquo;
                 </blockquote>

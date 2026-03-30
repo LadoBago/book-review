@@ -17,7 +17,7 @@ export default function ConfirmModal({
   title,
   message,
   confirmLabel,
-  confirmClassName = "bg-gray-900 text-white hover:bg-gray-700",
+  confirmClassName = "bg-orange-400 text-white hover:bg-orange-500",
   onConfirm,
   onCancel,
 }: ConfirmModalProps) {

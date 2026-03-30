@@ -37,7 +37,7 @@ export default function Navbar() {
   return (
     <nav className="border-b border-gray-200 bg-white">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-        <Link href="/" className="text-xl font-bold text-gray-900">
+        <Link href="/" className="text-xl font-bold text-green-900">
           {t("siteTitle")}
         </Link>
         <div className="flex items-center gap-4">
@@ -101,7 +101,7 @@ export default function Navbar() {
           ) : (
             <button
               onClick={() => signIn("keycloak")}
-              className="rounded-md bg-gray-900 px-4 py-2 text-sm text-white hover:bg-gray-700"
+              className="rounded-md bg-orange-400 px-4 py-2 text-sm text-white hover:bg-orange-500"
             >
               {t("signIn")}
             </button>

@@ -54,7 +54,7 @@ export default function PublishButton({ reviewId, hasDraft, variant = "button" }
       <button
         onClick={handlePublish}
         disabled={loading}
-        className="shrink-0 rounded-md bg-gray-900 px-4 py-2 text-sm text-white hover:bg-gray-700 disabled:opacity-50"
+        className="shrink-0 rounded-md bg-orange-400 px-4 py-2 text-sm text-white hover:bg-orange-500 disabled:opacity-50"
       >
         {loading ? t("publishing") : label}
       </button>

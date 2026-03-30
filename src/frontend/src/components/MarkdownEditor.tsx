@@ -20,7 +20,7 @@ export default function MarkdownEditor({ value, onChange }: MarkdownEditorProps)
         onChange={(e) => onChange(e.target.value)}
         rows={16}
         placeholder={t("bodyPlaceholder")}
-        className="w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        className="w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-sm focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
       />
     </div>
   );

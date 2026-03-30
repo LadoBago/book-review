@@ -74,7 +74,7 @@ export default function ModerationActions({ reviewId }: ModerationActionsProps) 
             placeholder={t("rejectPlaceholder")}
             maxLength={500}
             rows={3}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
           />
           <div className="flex items-center justify-between">
             <span className="text-xs text-gray-400">{reason.length}/500</span>

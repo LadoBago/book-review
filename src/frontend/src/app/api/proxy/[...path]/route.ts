@@ -39,7 +39,7 @@ async function proxyRequest(
   }
 
   const headers = new Headers();
-  // Forward only safe headers
+  // Forward only safe headers (content-type is critical for multipart/form-data boundaries)
   const forwardHeaders = ["content-type", "accept", "accept-language"];
   for (const name of forwardHeaders) {
     const value = req.headers.get(name);
@@ -52,10 +52,10 @@ async function proxyRequest(
     return NextResponse.json({ detail: "Unauthorized" }, { status: 401 });
   }
 
-  const body =
-    req.method !== "GET" && req.method !== "HEAD"
-      ? await req.blob()
-      : undefined;
+  let body: ArrayBuffer | undefined;
+  if (req.method !== "GET" && req.method !== "HEAD") {
+    body = await req.arrayBuffer();
+  }
 
   const response = await fetch(url.toString(), {
     method: req.method,
