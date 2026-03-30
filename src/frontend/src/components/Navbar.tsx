@@ -76,14 +76,16 @@ export default function Navbar() {
                 </button>
                 <div className="invisible absolute right-0 z-10 w-48 pt-2 group-hover:visible">
                   <div className="rounded-md border border-gray-200 bg-white py-1 shadow-lg">
+                  {!session.isSocialLogin && (
                   <a
-                    href={`${process.env.NEXT_PUBLIC_KEYCLOAK_URL || "http://localhost:8080/realms/book-review"}/account/#/security/signingin`}
+                    href="/api/auth/change-password"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                   >
                     {t("changePassword")}
                   </a>
+                  )}
                   <button
                     onClick={() => {
                       window.location.href = "/api/auth/federated-logout";
