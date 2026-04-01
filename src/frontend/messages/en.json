@@ -26,7 +26,8 @@
     "by": "By {author}",
     "notFoundTitle": "Review Not Found",
     "notFoundMessage": "The review you're looking for doesn't exist or has been removed.",
-    "backToHome": "Back to Home"
+    "backToHome": "Back to Home",
+    "shareOnFacebook": "Share on Facebook"
   },
   "dashboard": {
     "title": "My Reviews",

@@ -6,6 +6,7 @@ import { auth } from "@/lib/auth";
 import MarkdownPreview from "@/components/MarkdownPreview";
 import { Link } from "@/i18n/navigation";
 import UnpublishButton from "@/components/UnpublishButton";
+import FacebookShareButton from "@/components/FacebookShareButton";
 
 interface ReviewPageProps {
   params: Promise<{ slug: string; locale: string }>;
@@ -150,6 +151,10 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
           </div>
         </section>
       )}
+
+      <div className="mt-8 border-t border-gray-200 pt-6">
+        <FacebookShareButton label={t("shareOnFacebook")} />
+      </div>
     </article>
   );
 }
